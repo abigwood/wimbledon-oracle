@@ -259,7 +259,7 @@ def main():
         req = urllib.request.Request(
             f"{api_url.rstrip('/')}/settle",
             data=json.dumps({"secret": secret, "results": overlay}).encode(),
-            headers={"content-type": "application/json"},
+            headers={"content-type": "application/json", "user-agent": "WimbledonOracle/1.0"},
         )
         with urllib.request.urlopen(req, timeout=20) as response:
             if response.status != 200:
