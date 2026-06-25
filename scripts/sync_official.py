@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""Sync confirmed Wimbledon singles order-of-play/results into fixtures.json.
+
+Uses the same public GraphQL endpoint as wimbledon.com. No API key, paid service,
+or chargeable fallback is used. If the official endpoint fails, the existing
+fixture file is left untouched.
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import json
+import os
+import sys
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURES_PATH = ROOT / "data" / "fixtures.json"
+ENDPOINT = "https://www.wimbledon.com/graphql"
+
+QUERY = """
+query Schedule($year: Int!, $day: Int!) {
+  schedule(year: $year, tournDay: $day) {
+    tournDay
+    courts {
+      courtName courtId startEpoch
+      matches {
+        matchId order notBefore eventName eventCode roundName status statusCode comment courtName
+        team1 { displayNameA seed won }
+        team2 { displayNameA seed won }
+        score { setsWon }
+      }
+    }
+  }
+}
+"""
+
+DAYS_QUERY = """
+query ScheduleDays($year: Int!) {
+  scheduleDays(year: $year) {
+    tournDay released
+  }
+}
+"""
+
+MAIN_DAYS = range(8, 22)
+EARLY_DATES = {"2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02"}
+TOUR_NAMES = {"Gentlemen's Singles": "men", "Ladies' Singles": "women"}
+
+
+def graphql(operation: str, variables: dict, query: str) -> dict:
+    body = json.dumps({
+        "operationName": operation,
+        "variables": variables,
+        "query": query,
+    }).encode()
+    req = urllib.request.Request(
+        ENDPOINT,
+        data=body,
+        headers={"content-type": "application/json", "user-agent": "WimbledonOracle/1.0"},
+    )
+    with urllib.request.urlopen(req, timeout=25) as response:
+        payload = json.load(response)
+    if payload.get("errors"):
+        raise RuntimeError(payload["errors"][0].get("message", "official GraphQL error"))
+    return payload["data"]
+
+
+def request(day: int) -> dict:
+    return graphql("Schedule", {"year": 2026, "day": day}, QUERY)
+
+
+def first_team(value):
+    if isinstance(value, list):
+        return value[0] if value else {}
+    return value or {}
+
+
+def iso_from_epoch(value):
+    if not value:
+        return None
+    number = float(value)
+    if number > 10_000_000_000:
+        number /= 1000
+    return dt.datetime.fromtimestamp(number, dt.timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def not_before(value, date):
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return iso_from_epoch(value)
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        parsed = dt.datetime.fromisoformat(text.replace("Z", "+00:00"))
+        return parsed.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    except ValueError:
+        pass
+    for fmt in ("%H:%M", "%H.%M"):
+        try:
+            local = dt.datetime.combine(dt.date.fromisoformat(date), dt.datetime.strptime(text, fmt).time(), tzinfo=dt.timezone(dt.timedelta(hours=1)))
+            return local.astimezone(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+        except ValueError:
+            continue
+    return None
+
+
+def court_rank(name):
+    value = (name or "").lower()
+    if "centre" in value:
+        return 0
+    if "no. 1" in value or "court 1" in value:
+        return 1
+    if "no. 2" in value or "court 2" in value:
+        return 2
+    if "no. 3" in value or "court 3" in value:
+        return 3
+    return 20
+
+
+def status_for(match):
+    value = f"{match.get('status', '')} {match.get('comment', '')}".lower()
+    if "walkover" in value:
+        return "walkover"
+    if "retir" in value:
+        return "retired"
+    if "abandon" in value:
+        return "abandoned"
+    if "cancel" in value:
+        return "cancelled"
+    if "complete" in value or match.get("statusCode") == "D":
+        return "complete"
+    if any(word in value for word in ("progress", "live", "suspend")):
+        return "live"
+    return "upcoming"
+
+
+def result_for(match):
+    if status_for(match) != "complete":
+        return None
+    values = (match.get("score") or {}).get("setsWon") or []
+    p1, p2 = values.count(1), values.count(2)
+    if p1 == p2 == 0:
+        one, two = first_team(match.get("team1")), first_team(match.get("team2"))
+        if one.get("won") is True:
+            return [3 if "Gentlemen" in match.get("eventName", "") else 2, 0]
+        if two.get("won") is True:
+            return [0, 3 if "Gentlemen" in match.get("eventName", "") else 2]
+        return None
+    return [p1, p2]
+
+
+def load_existing():
+    try:
+        return json.loads(FIXTURES_PATH.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"fixtures": []}
+
+
+def main():
+    existing = load_existing()
+    old_by_official = {
+        str(item.get("officialMatchId")): item
+        for item in existing.get("fixtures", [])
+        if item.get("officialMatchId")
+    }
+    now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    raw = []
+    days_data = graphql("ScheduleDays", {"year": 2026}, DAYS_QUERY)
+    released = {item["tournDay"] for item in days_data.get("scheduleDays", []) if item.get("released")}
+
+    for day in MAIN_DAYS:
+        if day not in released:
+            continue
+        data = request(day)
+        schedule = data.get("schedule")
+        if not schedule:
+            continue
+        for court in schedule.get("courts") or []:
+            court_start = iso_from_epoch(court.get("startEpoch"))
+            court_date = dt.datetime.fromisoformat(court_start.replace("Z", "+00:00")).astimezone(dt.timezone(dt.timedelta(hours=1))).date().isoformat() if court_start else None
+            for match in court.get("matches") or []:
+                tour = TOUR_NAMES.get(match.get("eventName"))
+                if not tour or not court_date:
+                    continue
+                one, two = first_team(match.get("team1")), first_team(match.get("team2"))
+                if not one.get("displayNameA") or not two.get("displayNameA"):
+                    continue
+                start_at = not_before(match.get("notBefore"), court_date)
+                if not start_at and int(match.get("order") or 0) == 1:
+                    start_at = court_start
+                status = status_for(match)
+                old = old_by_official.get(str(match.get("matchId")), {})
+                lock_at = old.get("lockAt")
+                if not lock_at and status != "upcoming":
+                    lock_at = now
+                if not lock_at and start_at:
+                    start = dt.datetime.fromisoformat(start_at.replace("Z", "+00:00"))
+                    if start <= dt.datetime.now(dt.timezone.utc):
+                        lock_at = start_at
+                raw.append({
+                    "officialMatchId": str(match["matchId"]),
+                    "officialDay": day,
+                    "date": court_date,
+                    "round": match.get("roundName") or "Singles",
+                    "tour": tour,
+                    "coverage": "featured" if court_date in EARLY_DATES else "all",
+                    "player1": one["displayNameA"],
+                    "player2": two["displayNameA"],
+                    "seed1": one.get("seed"),
+                    "seed2": two.get("seed"),
+                    "court": match.get("courtName") or court.get("courtName"),
+                    "order": int(match.get("order") or 99),
+                    "startAt": start_at,
+                    "lockAt": lock_at,
+                    "status": status,
+                    "result": result_for(match),
+                })
+
+    selected = []
+    for date in sorted({item["date"] for item in raw}):
+        for tour in ("men", "women"):
+            matches = [item for item in raw if item["date"] == date and item["tour"] == tour]
+            matches.sort(key=lambda item: (court_rank(item["court"]), item["order"], item["seed1"] or 999, item["seed2"] or 999))
+            if date in EARLY_DATES:
+                matches = matches[:3]
+            for index, item in enumerate(matches, 1):
+                item["id"] = f"{date}-{tour}-{index}"
+                item.pop("order", None)
+                selected.append(item)
+
+    output = {
+        "updatedAt": now,
+        "source": "Official Wimbledon public scores and order-of-play service",
+        "sourceUrls": [
+            "https://www.wimbledon.com/en_GB/scores/schedule",
+            "https://www.wimbledon.com/en_GB/scores/results",
+        ],
+        "status": "live" if selected else "draw-pending",
+        "fixtures": selected,
+    }
+    FIXTURES_PATH.write_text(json.dumps(output, indent=2, ensure_ascii=False) + "\n")
+
+    api_url = os.getenv("WINDOW_API")
+    secret = os.getenv("SETTLE_SECRET")
+    if api_url and secret:
+        overlay = {
+            item["id"]: {
+                "status": item["status"],
+                "result": item["result"],
+                "lockAt": item["lockAt"],
+            }
+            for item in selected
+            if item["status"] != "upcoming" or item["result"] or item["lockAt"]
+        }
+        req = urllib.request.Request(
+            f"{api_url.rstrip('/')}/settle",
+            data=json.dumps({"secret": secret, "results": overlay}).encode(),
+            headers={"content-type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=20) as response:
+            if response.status != 200:
+                raise RuntimeError(f"settle failed: {response.status}")
+
+    print(f"synced {len(selected)} selected singles matches from released official schedules")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:
+        print(f"sync failed; existing data preserved by git workflow: {exc}", file=sys.stderr)
+        raise
