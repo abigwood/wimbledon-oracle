@@ -4,9 +4,8 @@ A separate Wimbledon 2026 set-score predictor inspired by Kickoff Oracle. It doe
 
 ## Prediction scope
 
-- 29–30 June, first round: three featured gentlemen's and three featured ladies' matches per day.
-- 1–2 July, second round: three featured gentlemen's and three featured ladies' matches per day.
-- From the last 32 on 3 July: every gentlemen's and ladies' singles match.
+- 29 June–4 July, first round through last 32: four featured gentlemen's and four featured ladies' matches per day.
+- From the round of 16 on 5 July: every gentlemen's and ladies' singles match.
 - Gentlemen: predict 3–0, 3–1 or 3–2 to either player.
 - Ladies: predict 2–0 or 2–1 to either player.
 - Scoring: exact set score 5 points; correct winner with the wrong set score 2; otherwise 0.

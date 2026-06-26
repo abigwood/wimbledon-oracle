@@ -45,7 +45,11 @@ query ScheduleDays($year: Int!) {
 """
 
 MAIN_DAYS = range(8, 22)
-EARLY_DATES = {"2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02"}
+FEATURED_DATES = {
+    "2026-06-29", "2026-06-30",
+    "2026-07-01", "2026-07-02",
+    "2026-07-03", "2026-07-04",
+}
 TOUR_NAMES = {"Gentlemen's Singles": "men", "Ladies' Singles": "women"}
 
 
@@ -207,7 +211,7 @@ def main():
                     "date": court_date,
                     "round": match.get("roundName") or "Singles",
                     "tour": tour,
-                    "coverage": "featured" if court_date in EARLY_DATES else "all",
+                    "coverage": "featured" if court_date in FEATURED_DATES else "all",
                     "player1": one["displayNameA"],
                     "player2": two["displayNameA"],
                     "seed1": one.get("seed"),
@@ -225,8 +229,8 @@ def main():
         for tour in ("men", "women"):
             matches = [item for item in raw if item["date"] == date and item["tour"] == tour]
             matches.sort(key=lambda item: (court_rank(item["court"]), item["order"], item["seed1"] or 999, item["seed2"] or 999))
-            if date in EARLY_DATES:
-                matches = matches[:3]
+            if date in FEATURED_DATES:
+                matches = matches[:4]
             for index, item in enumerate(matches, 1):
                 item["id"] = f"{date}-{tour}-{index}"
                 item.pop("order", None)

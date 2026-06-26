@@ -22,12 +22,13 @@ class WimbledonOracleTests(unittest.TestCase):
     def test_early_round_volume(self):
         app = (ROOT / "app.js").read_text()
         for date in ("2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02"):
-            self.assertRegex(app, rf'\["{date}", "[^"]+", 3, 3, "featured"\]')
+            self.assertRegex(app, rf'\["{date}", "[^"]+", 4, 4, "featured"\]')
 
-    def test_last_32_has_every_match(self):
+    def test_last_32_stays_featured_until_round_of_16(self):
         app = (ROOT / "app.js").read_text()
-        self.assertIn('["2026-07-03", "Last 32", 8, 8, "all"]', app)
-        self.assertIn('["2026-07-04", "Last 32", 8, 8, "all"]', app)
+        self.assertIn('["2026-07-03", "Last 32", 4, 4, "featured"]', app)
+        self.assertIn('["2026-07-04", "Last 32", 4, 4, "featured"]', app)
+        self.assertIn('["2026-07-05", "Last 16", 4, 4, "all"]', app)
 
     def test_valid_tennis_scores_only(self):
         app = (ROOT / "app.js").read_text()
@@ -50,13 +51,14 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260625a", html)
-        self.assertIn("app.js?v=20260625a", html)
+        self.assertIn("styles.css?v=20260626a", html)
+        self.assertIn("app.js?v=20260626a", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_zero_cost_official_data_workflow(self):
         sync = (ROOT / "scripts/sync_official.py").read_text()
         self.assertIn("https://www.wimbledon.com/graphql", sync)
+        self.assertIn("FEATURED_DATES", sync)
         self.assertNotIn("rapidapi", sync.lower())
         self.assertNotIn("api_key", sync.lower())
 

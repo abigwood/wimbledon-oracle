@@ -10,12 +10,12 @@ const STORAGE = {
 };
 
 const schedule = [
-  ["2026-06-29", "First round", 3, 3, "featured"],
-  ["2026-06-30", "First round", 3, 3, "featured"],
-  ["2026-07-01", "Second round", 3, 3, "featured"],
-  ["2026-07-02", "Second round", 3, 3, "featured"],
-  ["2026-07-03", "Last 32", 8, 8, "all"],
-  ["2026-07-04", "Last 32", 8, 8, "all"],
+  ["2026-06-29", "First round", 4, 4, "featured"],
+  ["2026-06-30", "First round", 4, 4, "featured"],
+  ["2026-07-01", "Second round", 4, 4, "featured"],
+  ["2026-07-02", "Second round", 4, 4, "featured"],
+  ["2026-07-03", "Last 32", 4, 4, "featured"],
+  ["2026-07-04", "Last 32", 4, 4, "featured"],
   ["2026-07-05", "Last 16", 4, 4, "all"],
   ["2026-07-06", "Last 16", 4, 4, "all"],
   ["2026-07-07", "Quarter-finals", 2, 2, "all"],
@@ -171,7 +171,7 @@ function hero() {
   return `<section class="hero">
     <span class="eyebrow">The Championships · 29 June–12 July</span>
     <h1>Call the score in sets.</h1>
-    <p>Six featured predictions per day in rounds one and two. Then every gentlemen's and ladies' singles match from the last 32 to the finals.</p>
+    <p>Eight featured predictions per day until the round of 16. Then every gentlemen's and ladies' singles match to the finals.</p>
     <div class="countdown">🎾 <span>${daysToStart()}</span></div>
   </section>`;
 }
@@ -263,7 +263,7 @@ function todayView() {
   return `${hero()}${installNotice()}${inviteCode && !leagueCodes.includes(inviteCode) ? `<div class="notice invite-notice"><span class="notice-icon">🏆</span><div><strong>League invitation: ${inviteCode}</strong><p>Open the League tab to join.</p></div></div>` : ""}${drawNotice()}
     <div class="section-head">
       <div><span class="eyebrow">Next up</span><h2>${title}</h2><p>${subtitle}</p></div>
-      <span class="pill">3 men · 3 women</span>
+      <span class="pill">4 men · 4 women</span>
     </div>
     ${dayMatches.map(matchCard).join("")}`;
 }
@@ -360,8 +360,8 @@ function rulesView() {
       <li>Walkovers, retirements, cancellations and abandoned matches are void.</li>
     </ul>
     <div class="round-grid">
-      <div class="round-rule"><b>Rounds 1–2</b><span>Top 3 men's + top 3 women's matches each day</span></div>
-      <div class="round-rule"><b>Last 32</b><span>Every men's and women's match</span></div>
+      <div class="round-rule"><b>Rounds 1–2</b><span>Top 4 men's + top 4 women's matches each day</span></div>
+      <div class="round-rule"><b>Last 32</b><span>Top 4 men's + top 4 women's matches each day</span></div>
       <div class="round-rule"><b>Last 16–SF</b><span>Every men's and women's match</span></div>
       <div class="round-rule"><b>Finals</b><span>Both champions decided</span></div>
     </div>
