@@ -53,6 +53,22 @@ FEATURED_DATES = {
 FEATURED_PER_TOUR = 4
 SHOW_COURTS = ("Centre Court", "No. 1 Court", "No. 2 Court", "No. 3 Court")
 TOUR_NAMES = {"Gentlemen's Singles": "men", "Ladies' Singles": "women"}
+PREDICTION_SCHEDULE = [
+    ("2026-06-29", "First round", 4, 4, "featured"),
+    ("2026-06-30", "First round", 4, 4, "featured"),
+    ("2026-07-01", "Second round", 4, 4, "featured"),
+    ("2026-07-02", "Second round", 4, 4, "featured"),
+    ("2026-07-03", "Last 32", 4, 4, "featured"),
+    ("2026-07-04", "Last 32", 4, 4, "featured"),
+    ("2026-07-05", "Last 16", 4, 4, "all"),
+    ("2026-07-06", "Last 16", 4, 4, "all"),
+    ("2026-07-07", "Quarter-finals", 2, 2, "all"),
+    ("2026-07-08", "Quarter-finals", 2, 2, "all"),
+    ("2026-07-09", "Ladies' semi-finals", 0, 2, "all"),
+    ("2026-07-10", "Gentlemen's semi-finals", 2, 0, "all"),
+    ("2026-07-11", "Ladies' final", 0, 1, "all"),
+    ("2026-07-12", "Gentlemen's final", 1, 0, "all"),
+]
 
 
 def graphql(operation: str, variables: dict, query: str) -> dict:
@@ -184,6 +200,35 @@ def load_existing():
         return {"fixtures": []}
 
 
+def pending_slots(selected):
+    selected_ids = {item["id"] for item in selected}
+    slots = []
+    for date, round_name, men, women, coverage in PREDICTION_SCHEDULE:
+        for tour, count in (("men", men), ("women", women)):
+            for index in range(1, count + 1):
+                fixture_id = f"{date}-{tour}-{index}"
+                if fixture_id in selected_ids:
+                    continue
+                slots.append({
+                    "id": fixture_id,
+                    "date": date,
+                    "round": round_name,
+                    "tour": tour,
+                    "coverage": coverage,
+                    "featured": coverage == "featured",
+                    "time": None,
+                    "startAt": None,
+                    "court": None,
+                    "player1": "",
+                    "player2": "",
+                    "seed1": None,
+                    "seed2": None,
+                    "status": "pending-draw",
+                    "result": None,
+                })
+    return slots
+
+
 def main():
     existing = load_existing()
     old_by_official = {
@@ -256,6 +301,7 @@ def main():
                 item.pop("order", None)
                 selected.append(item)
 
+    fixtures = selected + pending_slots(selected)
     output = {
         "updatedAt": now,
         "source": "Official Wimbledon public scores and order-of-play service",
@@ -270,7 +316,7 @@ def main():
             "courtPriority": list(SHOW_COURTS),
             "tieBreakers": ["seeded players", "official order of play"],
         },
-        "fixtures": selected,
+        "fixtures": fixtures,
     }
     FIXTURES_PATH.write_text(json.dumps(output, indent=2, ensure_ascii=False) + "\n")
 
