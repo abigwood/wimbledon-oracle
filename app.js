@@ -498,7 +498,20 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   render();
 });
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    location.reload();
+  });
+  navigator.serviceWorker.register("sw.js")
+    .then((registration) => {
+      registration.update();
+      if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    })
+    .catch(() => {});
+}
 
 Promise.all([loadFixtures(), hydrateIdentity()]).then(() => {
   if (inviteCode && !leagueCodes.includes(inviteCode)) currentView = "league";
