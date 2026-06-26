@@ -59,8 +59,15 @@ class WimbledonOracleTests(unittest.TestCase):
         sync = (ROOT / "scripts/sync_official.py").read_text()
         self.assertIn("https://www.wimbledon.com/graphql", sync)
         self.assertIn("FEATURED_DATES", sync)
+        self.assertIn("FEATURED_PER_TOUR = 4", sync)
         self.assertNotIn("rapidapi", sync.lower())
         self.assertNotIn("api_key", sync.lower())
+
+    def test_featured_selection_policy_is_explicit(self):
+        sync = (ROOT / "scripts/sync_official.py").read_text()
+        self.assertIn('SHOW_COURTS = ("Centre Court", "No. 1 Court", "No. 2 Court", "No. 3 Court")', sync)
+        self.assertIn("def featured_sort_key", sync)
+        self.assertIn('"tieBreakers": ["seeded players", "official order of play"]', sync)
 
     def test_separate_backend_configuration(self):
         wrangler = (ROOT / "worker/wrangler.toml").read_text()

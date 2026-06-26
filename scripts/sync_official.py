@@ -50,6 +50,8 @@ FEATURED_DATES = {
     "2026-07-01", "2026-07-02",
     "2026-07-03", "2026-07-04",
 }
+FEATURED_PER_TOUR = 4
+SHOW_COURTS = ("Centre Court", "No. 1 Court", "No. 2 Court", "No. 3 Court")
 TOUR_NAMES = {"Gentlemen's Singles": "men", "Ladies' Singles": "women"}
 
 
@@ -123,6 +125,24 @@ def court_rank(name):
     if "no. 3" in value or "court 3" in value:
         return 3
     return 20
+
+
+def seed_rank(item):
+    seeds = [
+        seed for seed in (item.get("seed1"), item.get("seed2"))
+        if isinstance(seed, int) or str(seed or "").isdigit()
+    ]
+    return min(map(int, seeds)) if seeds else 999
+
+
+def featured_sort_key(item):
+    return (
+        court_rank(item["court"]),
+        seed_rank(item),
+        item["order"],
+        item["player1"],
+        item["player2"],
+    )
 
 
 def status_for(match):
@@ -228,9 +248,9 @@ def main():
     for date in sorted({item["date"] for item in raw}):
         for tour in ("men", "women"):
             matches = [item for item in raw if item["date"] == date and item["tour"] == tour]
-            matches.sort(key=lambda item: (court_rank(item["court"]), item["order"], item["seed1"] or 999, item["seed2"] or 999))
+            matches.sort(key=featured_sort_key)
             if date in FEATURED_DATES:
-                matches = matches[:4]
+                matches = matches[:FEATURED_PER_TOUR]
             for index, item in enumerate(matches, 1):
                 item["id"] = f"{date}-{tour}-{index}"
                 item.pop("order", None)
@@ -244,6 +264,12 @@ def main():
             "https://www.wimbledon.com/en_GB/scores/results",
         ],
         "status": "live" if selected else "draw-pending",
+        "selectionPolicy": {
+            "featuredDates": sorted(FEATURED_DATES),
+            "featuredPerTour": FEATURED_PER_TOUR,
+            "courtPriority": list(SHOW_COURTS),
+            "tieBreakers": ["seeded players", "official order of play"],
+        },
         "fixtures": selected,
     }
     FIXTURES_PATH.write_text(json.dumps(output, indent=2, ensure_ascii=False) + "\n")

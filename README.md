@@ -10,6 +10,13 @@ A separate Wimbledon 2026 set-score predictor inspired by Kickoff Oracle. It doe
 - Ladies: predict 2–0 or 2–1 to either player.
 - Scoring: exact set score 5 points; correct winner with the wrong set score 2; otherwise 0.
 
+## Featured match selection
+
+- Keep the daily balance at four gentlemen's and four ladies' singles matches.
+- Select show-court singles first: Centre Court, No. 1 Court, No. 2 Court, then No. 3 Court.
+- If more matches are available than fit the daily cap, prioritise seeded players, then the official order of play.
+- British players and especially high-profile names can be manually favoured only when they are clearly identifiable from official information; the app should not guess or invent those signals.
+
 ## Public architecture
 
 - Static PWA: GitHub Pages at `https://abigwood.github.io/wimbledon-oracle/`
