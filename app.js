@@ -197,8 +197,14 @@ function scoreOptions(match) {
     : [["2–0", 2, 0], ["2–1", 2, 1], ["0–2", 0, 2], ["1–2", 1, 2]];
 }
 
+function closedStatus(match) {
+  return ["walkover", "retired", "cancelled", "abandoned", "live", "in progress", "completed", "complete", "finished"].includes(String(match.status).toLowerCase());
+}
+
 function matchOpen(match) {
-  return Boolean(match.player1 && match.player2 && match.startAt && Date.now() < Date.parse(match.startAt) && !match.result && !["walkover", "retired", "cancelled", "abandoned"].includes(String(match.status).toLowerCase()));
+  if (!match.player1 || !match.player2 || match.result || closedStatus(match)) return false;
+  if (match.startAt) return Date.now() < Date.parse(match.startAt);
+  return Boolean(match.officialMatchId && String(match.status || "upcoming").toLowerCase() === "upcoming");
 }
 
 function resultText(match) {
@@ -231,7 +237,7 @@ function matchCard(match) {
   const ready = Boolean(match.player1 && match.player2);
   const open = matchOpen(match);
   const editing = !pick || editingPick === match.id || busyMatch === match.id;
-  const showOptions = ready && (!pick || open);
+  const showOptions = ready && (!pick || open || Boolean(pick));
   const options = scoreOptions(match).map(([label, p1, p2]) => {
     const selected = pick && pick.p1 === p1 && pick.p2 === p2;
     const disabled = !open || busyMatch === match.id || (pick && !editing);
