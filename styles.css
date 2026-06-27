@@ -222,7 +222,65 @@ main {
 .score-button:hover { border-color: var(--purple); }
 .score-button.selected { border-color: var(--purple); color: var(--white); background: var(--purple); }
 .score-button:disabled { cursor: not-allowed; opacity: .45; }
-.pick-saved { margin-top: 7px; color: var(--green); font-size: .7rem; font-weight: 800; }
+.score-options.editing { margin-top: 9px; }
+.pick-lock-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 11px;
+  border: 1px solid #b8d1b1;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #eef7df, #fff);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.75);
+}
+.pick-lock-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--white);
+  background: var(--green);
+  font-size: .9rem;
+}
+.pick-lock-main { min-width: 0; }
+.pick-lock-label {
+  display: block;
+  color: var(--green);
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.pick-lock-main strong {
+  display: block;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+  font-size: .84rem;
+  line-height: 1.25;
+}
+.pick-lock-main strong b {
+  color: var(--purple);
+  font-variant-numeric: tabular-nums;
+}
+.pick-lock-main p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: .7rem;
+  line-height: 1.35;
+}
+.update-pick-button {
+  min-width: 96px;
+  padding: 8px 10px;
+  border: 1px solid var(--purple);
+  border-radius: 10px;
+  color: var(--purple);
+  background: var(--white);
+  font-size: .72rem;
+  font-weight: 900;
+}
+.pick-edit-hint { margin-top: 7px; color: var(--muted); font-size: .7rem; font-weight: 800; }
 .flash {
   margin: 10px 0;
   padding: 10px 12px;
@@ -346,6 +404,8 @@ dialog label { display: block; margin-bottom: 6px; color: var(--muted); font-siz
   .profile-button { width: 34px; height: 34px; }
   .section-head .pill { display: none; }
   .score-button { flex: 1 0 58px; min-width: 0; }
+  .pick-lock-card { grid-template-columns: auto minmax(0, 1fr); }
+  .update-pick-button { grid-column: 1 / -1; width: 100%; }
   .league-actions { grid-template-columns: 1fr; }
   .restore-card { align-items: stretch; flex-direction: column; }
   .restore-card input { max-width: none; }

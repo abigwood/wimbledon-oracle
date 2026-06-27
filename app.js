@@ -35,6 +35,7 @@ let leagueCodes = readJSON(STORAGE.leagues, []);
 let activeLeague = localStorage.getItem(STORAGE.activeLeague) || leagueCodes[0] || "";
 let leagueState = null;
 let busyMatch = "";
+let editingPick = "";
 let flashMessage = "";
 const inviteCode = new URLSearchParams(location.search).get("league")?.toUpperCase() || "";
 
@@ -208,10 +209,29 @@ function resultText(match) {
   return "Predictions open";
 }
 
+function pickStatus(match, pick, open) {
+  if (!pick) return "";
+  const player1 = escapeHTML(match.player1 || "Player 1");
+  const player2 = escapeHTML(match.player2 || "Player 2");
+  const status = open
+    ? "Change it anytime before first ball. Hidden from your league until the match starts."
+    : "Locked at match start. Your league sees picks only after the reveal window opens.";
+  return `<div class="pick-lock-card">
+    <div class="pick-lock-icon" aria-hidden="true">🔒</div>
+    <div class="pick-lock-main">
+      <span class="pick-lock-label">Pick locked in</span>
+      <strong>${player1} <b>${pick.p1}–${pick.p2}</b> ${player2}</strong>
+      <p>${status}</p>
+    </div>
+    ${open ? `<button class="update-pick-button" type="button" data-update-pick="${match.id}">${editingPick === match.id ? "Choose below" : "Update pick"}</button>` : ""}
+  </div>`;
+}
+
 function matchCard(match) {
   const pick = picks[match.id];
   const ready = Boolean(match.player1 && match.player2);
   const open = matchOpen(match);
+  const editing = !pick || editingPick === match.id || busyMatch === match.id;
   const options = scoreOptions(match).map(([label, p1, p2]) => {
     const selected = pick && pick.p1 === p1 && pick.p2 === p2;
     return `<button class="score-button${selected ? " selected" : ""}" type="button" data-pick="${match.id}" data-p1="${p1}" data-p2="${p2}" ${open && busyMatch !== match.id ? "" : "disabled"}>${busyMatch === match.id && selected ? "Saving…" : label}</button>`;
@@ -228,8 +248,9 @@ function matchCard(match) {
     </div>
     <div class="pick-zone">
       <div class="pick-label">${ready ? resultText(match) : "Predictions open when players are confirmed"}</div>
-      <div class="score-options">${options}</div>
-      ${pick ? `<div class="pick-saved">🔒 Your pick: ${pick.p1}–${pick.p2}${open ? " · changeable until start" : ""}</div>` : ""}
+      ${pick ? pickStatus(match, pick, open) : ""}
+      ${ready && (editing || !pick) ? `<div class="score-options${pick ? " editing" : ""}">${options}</div>` : ""}
+      ${pick && open && editing ? `<div class="pick-edit-hint">Tap a new set score to update your pick.</div>` : ""}
     </div>
   </article>`;
 }
@@ -413,6 +434,12 @@ document.addEventListener("click", async (event) => {
     render();
     return;
   }
+  const updatePick = event.target.closest("[data-update-pick]");
+  if (updatePick) {
+    editingPick = updatePick.dataset.updatePick;
+    render();
+    return;
+  }
   const pickButton = event.target.closest("[data-pick]");
   if (pickButton) {
     if (!(await requireName())) return;
@@ -425,6 +452,7 @@ document.addEventListener("click", async (event) => {
       await api("/pick", { uid: uid(), nickname: playerName, matchId, p1: picks[matchId].p1, p2: picks[matchId].p2 });
       localStorage.setItem(STORAGE.picks, JSON.stringify(picks));
       flashMessage = "Pick saved.";
+      editingPick = "";
     } catch (error) {
       if (previous) picks[matchId] = previous; else delete picks[matchId];
       flashMessage = error.message;
