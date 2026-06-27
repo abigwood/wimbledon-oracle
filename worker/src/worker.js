@@ -143,7 +143,7 @@ async function savePick(env, body) {
   if (match.officialDay && match.officialMatchId) {
     try {
       const official = await officialMatchStatus(match);
-      if (!official || !["scheduled", "not started"].includes(String(official.status || "").toLowerCase()))
+      if (!official || !officialMatchOpen(official))
         return json({ error: "the official match status shows play has started" }, 403, env);
     } catch {
       return json({ error: "cannot verify the official match status; pick not saved" }, 503, env);
@@ -201,6 +201,12 @@ async function officialMatchStatus(match) {
   const payload = await response.json();
   const matches = payload?.data?.schedule?.courts?.flatMap((court) => court.matches || []) || [];
   return matches.find((item) => String(item.matchId) === String(match.officialMatchId));
+}
+
+export function officialMatchOpen(official) {
+  const status = String(official?.status || "").toLowerCase();
+  const statusCode = String(official?.statusCode || "").toUpperCase();
+  return ["scheduled", "not started"].includes(status) || statusCode === "B";
 }
 
 async function settle(env, body) {
