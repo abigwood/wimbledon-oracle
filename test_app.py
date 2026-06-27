@@ -42,10 +42,12 @@ class WimbledonOracleTests(unittest.TestCase):
         app = (ROOT / "app.js").read_text()
         css = (ROOT / "styles.css").read_text()
         self.assertIn("function pickStatus", app)
-        self.assertIn("Pick locked in", app)
+        self.assertIn("Your pick is locked in", app)
         self.assertIn("data-update-pick", app)
         self.assertIn("Update pick", app)
         self.assertIn("editingPick = updatePick.dataset.updatePick", app)
+        self.assertIn("const showOptions = ready && (!pick || open)", app)
+        self.assertIn("locked-summary", app)
         self.assertIn(".pick-lock-card", css)
         self.assertIn(".update-pick-button", css)
 
@@ -62,14 +64,14 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260627a", html)
-        self.assertIn("app.js?v=20260627a", html)
+        self.assertIn("styles.css?v=20260627b", html)
+        self.assertIn("app.js?v=20260627b", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v8-20260627", sw)
+        self.assertIn("wimbledon-oracle-v9-20260627", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("controllerchange", app)

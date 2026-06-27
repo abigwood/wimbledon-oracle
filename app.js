@@ -219,11 +219,10 @@ function pickStatus(match, pick, open) {
   return `<div class="pick-lock-card">
     <div class="pick-lock-icon" aria-hidden="true">🔒</div>
     <div class="pick-lock-main">
-      <span class="pick-lock-label">Pick locked in</span>
+      <span class="pick-lock-label">Your pick is locked in</span>
       <strong>${player1} <b>${pick.p1}–${pick.p2}</b> ${player2}</strong>
       <p>${status}</p>
     </div>
-    ${open ? `<button class="update-pick-button" type="button" data-update-pick="${match.id}">${editingPick === match.id ? "Choose below" : "Update pick"}</button>` : ""}
   </div>`;
 }
 
@@ -232,9 +231,11 @@ function matchCard(match) {
   const ready = Boolean(match.player1 && match.player2);
   const open = matchOpen(match);
   const editing = !pick || editingPick === match.id || busyMatch === match.id;
+  const showOptions = ready && (!pick || open);
   const options = scoreOptions(match).map(([label, p1, p2]) => {
     const selected = pick && pick.p1 === p1 && pick.p2 === p2;
-    return `<button class="score-button${selected ? " selected" : ""}" type="button" data-pick="${match.id}" data-p1="${p1}" data-p2="${p2}" ${open && busyMatch !== match.id ? "" : "disabled"}>${busyMatch === match.id && selected ? "Saving…" : label}</button>`;
+    const disabled = !open || busyMatch === match.id || (pick && !editing);
+    return `<button class="score-button${selected ? " selected" : ""}" type="button" data-pick="${match.id}" data-p1="${p1}" data-p2="${p2}" ${disabled ? "disabled" : ""}>${busyMatch === match.id && selected ? "Saving…" : label}</button>`;
   }).join("");
   return `<article class="match-card">
     <div class="match-meta">
@@ -249,8 +250,9 @@ function matchCard(match) {
     <div class="pick-zone">
       <div class="pick-label">${ready ? resultText(match) : "Predictions open when players are confirmed"}</div>
       ${pick ? pickStatus(match, pick, open) : ""}
-      ${ready && (editing || !pick) ? `<div class="score-options${pick ? " editing" : ""}">${options}</div>` : ""}
+      ${showOptions ? `<div class="score-options${pick ? " locked-summary" : ""}${pick && editing ? " editing" : ""}">${options}</div>` : ""}
       ${pick && open && editing ? `<div class="pick-edit-hint">Tap a new set score to update your pick.</div>` : ""}
+      ${pick && open ? `<button class="update-pick-button" type="button" data-update-pick="${match.id}">${editing ? "Choose a new score" : "Update pick"}</button>` : ""}
     </div>
   </article>`;
 }

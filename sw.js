@@ -1,5 +1,5 @@
-const CACHE = "wimbledon-oracle-v8-20260627";
-const ASSETS = ["./", "index.html", "reset-cache.html", "styles.css?v=20260627a", "app.js?v=20260627a", "data/fixtures.json", "icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "manifest.webmanifest"];
+const CACHE = "wimbledon-oracle-v9-20260627";
+const ASSETS = ["./", "index.html", "reset-cache.html", "styles.css?v=20260627b", "app.js?v=20260627b", "data/fixtures.json", "icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "manifest.webmanifest"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
