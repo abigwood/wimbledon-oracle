@@ -27,11 +27,19 @@ query Schedule($year: Int!, $day: Int!) {
       courtName courtId startEpoch
       matches {
         matchId order notBefore eventName eventCode roundName status statusCode comment courtName
-        team1 { displayNameA seed won }
-        team2 { displayNameA seed won }
+        team1 { displayNameA seed won nationA }
+        team2 { displayNameA seed won nationA }
         score { setsWon }
       }
     }
+  }
+}
+"""
+
+SLAMTRACKER_QUERY = """
+query Slamtracker($year: String, $matchId: String!) {
+  slamtracker(year: $year, matchId: $matchId) {
+    head2head
   }
 }
 """
@@ -53,6 +61,21 @@ FEATURED_DATES = {
 FEATURED_PER_TOUR = 4
 SHOW_COURTS = ("Centre Court", "No. 1 Court", "No. 2 Court", "No. 3 Court")
 TOUR_NAMES = {"Gentlemen's Singles": "men", "Ladies' Singles": "women"}
+NATION_TO_FLAG = {
+    "AUS": "🇦🇺", "AUT": "🇦🇹", "BEL": "🇧🇪", "BIH": "🇧🇦",
+    "BLR": "🇧🇾", "BRA": "🇧🇷", "BUL": "🇧🇬", "CAN": "🇨🇦",
+    "CHI": "🇨🇱", "CHN": "🇨🇳", "COL": "🇨🇴", "CRO": "🇭🇷",
+    "CZE": "🇨🇿", "DEN": "🇩🇰", "ESP": "🇪🇸", "EST": "🇪🇪",
+    "FIN": "🇫🇮", "FRA": "🇫🇷", "GBR": "🇬🇧", "GER": "🇩🇪",
+    "GRE": "🇬🇷", "HUN": "🇭🇺", "IND": "🇮🇳", "IOA": "🏳️", "IRL": "🇮🇪",
+    "ISR": "🇮🇱", "ITA": "🇮🇹", "JPN": "🇯🇵", "KAZ": "🇰🇿",
+    "KOR": "🇰🇷", "LAT": "🇱🇻", "LTU": "🇱🇹", "MEX": "🇲🇽",
+    "NED": "🇳🇱", "NOR": "🇳🇴", "NZL": "🇳🇿", "POL": "🇵🇱",
+    "POR": "🇵🇹", "ROU": "🇷🇴", "RSA": "🇿🇦", "RUS": "🇷🇺",
+    "SRB": "🇷🇸", "SLO": "🇸🇮", "SUI": "🇨🇭", "SVK": "🇸🇰",
+    "SWE": "🇸🇪", "TUN": "🇹🇳", "TUR": "🇹🇷", "UKR": "🇺🇦",
+    "URU": "🇺🇾", "USA": "🇺🇸",
+}
 PREDICTION_SCHEDULE = [
     ("2026-06-29", "First round", 4, 4, "featured"),
     ("2026-06-30", "First round", 4, 4, "featured"),
@@ -91,6 +114,45 @@ def graphql(operation: str, variables: dict, query: str) -> dict:
 
 def request(day: int) -> dict:
     return graphql("Schedule", {"year": 2026, "day": day}, QUERY)
+
+
+def flag_for(nation):
+    return NATION_TO_FLAG.get(str(nation or "").upper(), "")
+
+
+def surname(name):
+    parts = str(name or "").split()
+    return parts[-1] if parts else ""
+
+
+def h2h_for(match_id):
+    if not match_id:
+        return None
+    try:
+        data = graphql("Slamtracker", {"year": "2026", "matchId": str(match_id)}, SLAMTRACKER_QUERY)
+        raw = (data.get("slamtracker") or {}).get("head2head")
+        if not raw:
+            return None
+        parsed = json.loads(raw)
+        player = (parsed.get("player") or [None])[0]
+        if not player:
+            return None
+        p1_wins = int(player.get("player1Wins") or 0)
+        p2_wins = int(player.get("player2Wins") or 0)
+        p1_name = player.get("player1Name") or ""
+        p2_name = player.get("player2Name") or ""
+        label = "H2H: first meeting"
+        if p1_wins or p2_wins:
+            label = f"H2H: {surname(p1_name)} {p1_wins}–{p2_wins} {surname(p2_name)}"
+        return {
+            "p1": p1_wins,
+            "p2": p2_wins,
+            "player1": p1_name,
+            "player2": p2_name,
+            "label": label,
+        }
+    except Exception:
+        return None
 
 
 def first_team(value):
@@ -281,6 +343,10 @@ def main():
                     "player2": two["displayNameA"],
                     "seed1": one.get("seed"),
                     "seed2": two.get("seed"),
+                    "nation1": one.get("nationA"),
+                    "nation2": two.get("nationA"),
+                    "flag1": flag_for(one.get("nationA")),
+                    "flag2": flag_for(two.get("nationA")),
                     "court": match.get("courtName") or court.get("courtName"),
                     "order": int(match.get("order") or 99),
                     "startAt": start_at,
@@ -300,6 +366,9 @@ def main():
                 item["id"] = f"{date}-{tour}-{index}"
                 item.pop("order", None)
                 selected.append(item)
+
+    for item in selected:
+        item["h2h"] = h2h_for(item.get("officialMatchId"))
 
     fixtures = selected + pending_slots(selected)
     output = {

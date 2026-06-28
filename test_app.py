@@ -65,14 +65,14 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260628e", html)
-        self.assertIn("app.js?v=20260628e", html)
+        self.assertIn("styles.css?v=20260628f", html)
+        self.assertIn("app.js?v=20260628f", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v16-20260628", sw)
+        self.assertIn("wimbledon-oracle-v17-20260628", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("controllerchange", app)
@@ -100,6 +100,22 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("FEATURED_PER_TOUR = 4", sync)
         self.assertNotIn("rapidapi", sync.lower())
         self.assertNotIn("api_key", sync.lower())
+
+    def test_player_flags_and_h2h_are_optional_fixture_metadata(self):
+        app = (ROOT / "app.js").read_text()
+        css = (ROOT / "styles.css").read_text()
+        sync = (ROOT / "scripts/sync_official.py").read_text()
+        fixtures = json.loads((ROOT / "data/fixtures.json").read_text())["fixtures"]
+        confirmed = [fixture for fixture in fixtures if fixture.get("player1") and fixture.get("player2")]
+        self.assertTrue(confirmed)
+        self.assertTrue(any(fixture.get("flag1") and fixture.get("flag2") for fixture in confirmed))
+        self.assertTrue(any((fixture.get("h2h") or {}).get("label") for fixture in confirmed))
+        self.assertIn("nationA", sync)
+        self.assertIn("SLAMTRACKER_QUERY", sync)
+        self.assertIn("function playerLabel", app)
+        self.assertIn("function h2hText", app)
+        self.assertIn(".player-flag", css)
+        self.assertIn(".h2h-line", css)
 
     def test_featured_selection_policy_is_explicit(self):
         sync = (ROOT / "scripts/sync_official.py").read_text()

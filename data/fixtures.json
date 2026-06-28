@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-28T20:00:36.042336Z",
+  "updatedAt": "2026-06-28T20:40:30.439543Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -39,12 +39,23 @@
       "player2": "M. Kecmanovic",
       "seed1": 1,
       "seed2": null,
+      "nation1": "ITA",
+      "nation2": "SRB",
+      "flag1": "🇮🇹",
+      "flag2": "🇷🇸",
       "court": "Centre Court",
       "startAt": "2026-06-29T12:30:00Z",
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-men-1"
+      "id": "2026-06-29-men-1",
+      "h2h": {
+        "p1": 4,
+        "p2": 0,
+        "player1": "Jannik Sinner",
+        "player2": "Miomir Kecmanovic",
+        "label": "H2H: Sinner 4–0 Kecmanovic"
+      }
     },
     {
       "officialMatchId": "1132",
@@ -57,12 +68,23 @@
       "player2": "N. Djokovic",
       "seed1": null,
       "seed2": 7,
+      "nation1": "CHN",
+      "nation2": "SRB",
+      "flag1": "🇨🇳",
+      "flag2": "🇷🇸",
       "court": "Centre Court",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-men-2"
+      "id": "2026-06-29-men-2",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Yibing Wu",
+        "player2": "Novak Djokovic",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "1125",
@@ -75,12 +97,23 @@
       "player2": "R. Safiullin",
       "seed1": 12,
       "seed2": null,
+      "nation1": "IOA",
+      "nation2": "IOA",
+      "flag1": "🏳️",
+      "flag2": "🏳️",
       "court": "Court 16",
       "startAt": "2026-06-29T10:00:00Z",
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-men-3"
+      "id": "2026-06-29-men-3",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Andrey Rublev",
+        "player2": "Roman Safiullin",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "1108",
@@ -93,12 +126,23 @@
       "player2": "L. Darderi",
       "seed1": null,
       "seed2": 14,
+      "nation1": "USA",
+      "nation2": "ITA",
+      "flag1": "🇺🇸",
+      "flag2": "🇮🇹",
       "court": "Court 15",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-men-4"
+      "id": "2026-06-29-men-4",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Ethan Quinn",
+        "player2": "Luciano Darderi",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "2101",
@@ -111,12 +155,23 @@
       "player2": "T. Kostovic",
       "seed1": 1,
       "seed2": null,
+      "nation1": "IOA",
+      "nation2": "SRB",
+      "flag1": "🏳️",
+      "flag2": "🇷🇸",
       "court": "Centre Court",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-women-1"
+      "id": "2026-06-29-women-1",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Aryna Sabalenka",
+        "player2": "Teodora Kostovic",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "2109",
@@ -129,12 +184,23 @@
       "player2": "A. Zakharova",
       "seed1": 10,
       "seed2": null,
+      "nation1": "CZE",
+      "nation2": "IOA",
+      "flag1": "🇨🇿",
+      "flag2": "🏳️",
       "court": "Court 12",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-women-2"
+      "id": "2026-06-29-women-2",
+      "h2h": {
+        "p1": 1,
+        "p2": 0,
+        "player1": "Karolina Muchova",
+        "player2": "Anastasia Zakharova",
+        "label": "H2H: Muchova 1–0 Zakharova"
+      }
     },
     {
       "officialMatchId": "2125",
@@ -147,12 +213,23 @@
       "player2": "M. Stojsavljevic",
       "seed1": 11,
       "seed2": null,
+      "nation1": "SUI",
+      "nation2": "GBR",
+      "flag1": "🇨🇭",
+      "flag2": "🇬🇧",
       "court": "Court 18",
       "startAt": "2026-06-29T10:00:00Z",
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-women-3"
+      "id": "2026-06-29-women-3",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Belinda Bencic",
+        "player2": "Mika Stojsavljevic",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "2124",
@@ -165,12 +242,23 @@
       "player2": "I. Jovic",
       "seed1": null,
       "seed2": 16,
+      "nation1": "ROU",
+      "nation2": "USA",
+      "flag1": "🇷🇴",
+      "flag2": "🇺🇸",
       "court": "Court 15",
       "startAt": "2026-06-29T10:00:00Z",
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-29-women-4"
+      "id": "2026-06-29-women-4",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Jaqueline Cristian",
+        "player2": "Iva Jovic",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "1149",
@@ -183,12 +271,23 @@
       "player2": "J. Draper",
       "seed1": 6,
       "seed2": null,
+      "nation1": "USA",
+      "nation2": "GBR",
+      "flag1": "🇺🇸",
+      "flag2": "🇬🇧",
       "court": "Centre Court",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-men-1"
+      "id": "2026-06-30-men-1",
+      "h2h": {
+        "p1": 2,
+        "p2": 3,
+        "player1": "Taylor Fritz",
+        "player2": "Jack Draper",
+        "label": "H2H: Fritz 2–3 Draper"
+      }
     },
     {
       "officialMatchId": "1156",
@@ -201,12 +300,23 @@
       "player2": "A. Bublik",
       "seed1": null,
       "seed2": 10,
+      "nation1": "AUS",
+      "nation2": "KAZ",
+      "flag1": "🇦🇺",
+      "flag2": "🇰🇿",
       "court": "Court 12",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-men-2"
+      "id": "2026-06-30-men-2",
+      "h2h": {
+        "p1": 1,
+        "p2": 0,
+        "player1": "Thanasi Kokkinakis",
+        "player2": "Alexander Bublik",
+        "label": "H2H: Kokkinakis 1–0 Bublik"
+      }
     },
     {
       "officialMatchId": "1157",
@@ -219,12 +329,23 @@
       "player2": "A. Popyrin",
       "seed1": 13,
       "seed2": null,
+      "nation1": "CZE",
+      "nation2": "AUS",
+      "flag1": "🇨🇿",
+      "flag2": "🇦🇺",
       "court": "Court 17",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-men-3"
+      "id": "2026-06-30-men-3",
+      "h2h": {
+        "p1": 1,
+        "p2": 1,
+        "player1": "Jiri Lehecka",
+        "player2": "Alexei Popyrin",
+        "label": "H2H: Lehecka 1–1 Popyrin"
+      }
     },
     {
       "officialMatchId": "1153",
@@ -237,12 +358,23 @@
       "player2": "T. Atmane",
       "seed1": 17,
       "seed2": null,
+      "nation1": "USA",
+      "nation2": "FRA",
+      "flag1": "🇺🇸",
+      "flag2": "🇫🇷",
       "court": "Court 12",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-men-4"
+      "id": "2026-06-30-men-4",
+      "h2h": {
+        "p1": 2,
+        "p2": 0,
+        "player1": "Frances Tiafoe",
+        "player2": "Terence Atmane",
+        "label": "H2H: Tiafoe 2–0 Atmane"
+      }
     },
     {
       "officialMatchId": "2148",
@@ -255,12 +387,23 @@
       "player2": "I. Swiatek",
       "seed1": null,
       "seed2": 3,
+      "nation1": "USA",
+      "nation2": "POL",
+      "flag1": "🇺🇸",
+      "flag2": "🇵🇱",
       "court": "Centre Court",
       "startAt": "2026-06-30T12:30:00Z",
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-women-1"
+      "id": "2026-06-30-women-1",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Taylor Townsend",
+        "player2": "Iga Swiatek",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "2146",
@@ -273,12 +416,23 @@
       "player2": "M. Joint",
       "seed1": null,
       "seed2": null,
+      "nation1": "USA",
+      "nation2": "AUS",
+      "flag1": "🇺🇸",
+      "flag2": "🇦🇺",
       "court": "Centre Court",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-women-2"
+      "id": "2026-06-30-women-2",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Serena Williams",
+        "player2": "Maya Joint",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "officialMatchId": "2156",
@@ -291,12 +445,23 @@
       "player2": "L. Noskova",
       "seed1": null,
       "seed2": 9,
+      "nation1": "GER",
+      "nation2": "CZE",
+      "flag1": "🇩🇪",
+      "flag2": "🇨🇿",
       "court": "Court 18",
       "startAt": null,
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-women-3"
+      "id": "2026-06-30-women-3",
+      "h2h": {
+        "p1": 0,
+        "p2": 1,
+        "player1": "Ella Seidel",
+        "player2": "Linda Noskova",
+        "label": "H2H: Seidel 0–1 Noskova"
+      }
     },
     {
       "officialMatchId": "2141",
@@ -309,12 +474,23 @@
       "player2": "R. Montgomery",
       "seed1": 13,
       "seed2": null,
+      "nation1": "ITA",
+      "nation2": "USA",
+      "flag1": "🇮🇹",
+      "flag2": "🇺🇸",
       "court": "Court 12",
       "startAt": "2026-06-30T10:00:00Z",
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-06-30-women-4"
+      "id": "2026-06-30-women-4",
+      "h2h": {
+        "p1": 0,
+        "p2": 0,
+        "player1": "Jasmine Paolini",
+        "player2": "Robin Montgomery",
+        "label": "H2H: first meeting"
+      }
     },
     {
       "id": "2026-07-01-men-1",

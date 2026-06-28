@@ -205,8 +205,17 @@ main {
 .players { padding: 12px; }
 .player-row { display: flex; align-items: center; gap: 9px; min-height: 34px; font-weight: 800; }
 .seed { width: 27px; color: var(--muted); font-size: .72rem; text-align: right; }
+.player-flag { flex: none; width: 1.35em; font-size: 1rem; line-height: 1; text-align: center; }
+.player-name { min-width: 0; overflow-wrap: anywhere; }
 .player-name.pending { color: #9aa39b; font-weight: 700; }
 .versus { margin: -2px 0 -2px 36px; color: #a1aaa2; font-size: .64rem; font-weight: 900; }
+.h2h-line {
+  margin: 7px 0 0 36px;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
 .pick-zone { padding: 0 12px 13px; }
 .pick-label { margin-bottom: 7px; color: var(--muted); font-size: .68rem; font-weight: 800; text-transform: uppercase; }
 .score-options { display: flex; flex-wrap: wrap; gap: 7px; }

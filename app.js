@@ -260,10 +260,30 @@ function resultText(match) {
   return "Predictions open";
 }
 
+function flagSpan(flag) {
+  return flag ? `<span class="player-flag" aria-hidden="true">${escapeHTML(flag)}</span>` : "";
+}
+
+function playerLabel(match, side, fallback) {
+  const name = match[`player${side}`] || fallback;
+  const ready = Boolean(match.player1 && match.player2);
+  return `${ready ? flagSpan(match[`flag${side}`]) : ""}<span class="player-name${ready ? "" : " pending"}">${escapeHTML(name)}</span>`;
+}
+
+function pickPlayerName(match, side, fallback) {
+  return `${match[`flag${side}`] ? `${escapeHTML(match[`flag${side}`])} ` : ""}${escapeHTML(match[`player${side}`] || fallback)}`;
+}
+
+function h2hText(match) {
+  if (!match.h2h || !match.player1 || !match.player2) return "";
+  if (typeof match.h2h === "string") return match.h2h;
+  return match.h2h.label || "";
+}
+
 function pickStatus(match, pick, open) {
   if (!pick) return "";
-  const player1 = escapeHTML(match.player1 || "Player 1");
-  const player2 = escapeHTML(match.player2 || "Player 2");
+  const player1 = pickPlayerName(match, 1, "Player 1");
+  const player2 = pickPlayerName(match, 2, "Player 2");
   const status = open
     ? "Change it anytime before first ball. Hidden from your league until the match starts."
     : "Locked at match start. Your league sees picks only after the reveal window opens.";
@@ -283,6 +303,7 @@ function matchCard(match) {
   const open = matchOpen(match);
   const editing = !pick || editingPick === match.id || busyMatch === match.id;
   const showOptions = ready && (!pick || open || Boolean(pick));
+  const h2h = h2hText(match);
   const options = scoreOptions(match).map(([label, p1, p2]) => {
     const selected = pick && pick.p1 === p1 && pick.p2 === p2;
     const disabled = !open || busyMatch === match.id || (pick && !editing);
@@ -294,9 +315,10 @@ function matchCard(match) {
       <span>${matchTime(match)}${match.court ? ` · ${match.court}` : ""}</span>
     </div>
     <div class="players">
-      <div class="player-row"><span class="seed">${match.seed1 ? `[${match.seed1}]` : ""}</span><span class="player-name${ready ? "" : " pending"}">${match.player1 || `${match.coverage === "featured" ? "Featured" : "Draw"} player TBC`}</span></div>
+      <div class="player-row"><span class="seed">${match.seed1 ? `[${match.seed1}]` : ""}</span>${playerLabel(match, 1, `${match.coverage === "featured" ? "Featured" : "Draw"} player TBC`)}</div>
       <div class="versus">VS</div>
-      <div class="player-row"><span class="seed">${match.seed2 ? `[${match.seed2}]` : ""}</span><span class="player-name${ready ? "" : " pending"}">${match.player2 || "Opponent TBC"}</span></div>
+      <div class="player-row"><span class="seed">${match.seed2 ? `[${match.seed2}]` : ""}</span>${playerLabel(match, 2, "Opponent TBC")}</div>
+      ${h2h ? `<div class="h2h-line">${escapeHTML(h2h)}</div>` : ""}
     </div>
     <div class="pick-zone">
       <div class="pick-label">${ready ? resultText(match) : "Predictions open when players are confirmed"}</div>
