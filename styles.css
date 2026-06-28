@@ -308,6 +308,24 @@ main {
   font-weight: 800;
 }
 .filter.active { border-color: var(--green); color: var(--white); background: var(--green); }
+.league-switcher { align-items: stretch; }
+.league-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(82vw, 310px);
+}
+.league-filter-code {
+  font-size: .66rem;
+  letter-spacing: .08em;
+  opacity: .78;
+}
+.league-filter-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 14px 0; }
 .stat { padding: 14px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); text-align: center; }

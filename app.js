@@ -5,6 +5,7 @@ const STORAGE = {
   name: "wimbledon_oracle_name",
   picks: "wimbledon_oracle_picks",
   leagues: "wimbledon_oracle_leagues",
+  leagueNames: "wimbledon_oracle_league_names",
   activeLeague: "wimbledon_oracle_active_league",
   recovery: "wimbledon_oracle_recovery",
 };
@@ -32,6 +33,7 @@ let tourFilter = "all";
 let picks = readJSON(STORAGE.picks, {});
 let playerName = localStorage.getItem(STORAGE.name) || "";
 let leagueCodes = readJSON(STORAGE.leagues, []);
+let leagueNames = readJSON(STORAGE.leagueNames, {});
 let activeLeague = localStorage.getItem(STORAGE.activeLeague) || leagueCodes[0] || "";
 let leagueState = null;
 let busyMatch = "";
@@ -113,6 +115,7 @@ async function hydrateIdentity() {
       if (!activeLeague) setActiveLeague(leagueCodes[0], false);
     }
     if (activeLeague) await loadLeagueState();
+    await loadKnownLeagueNames();
   } catch {
     // The PWA remains usable for already-cached fixtures and picks while offline.
   }
@@ -122,9 +125,26 @@ async function loadLeagueState() {
   if (!activeLeague || !API) { leagueState = null; return; }
   try {
     leagueState = await api(`/state?code=${encodeURIComponent(activeLeague)}`);
+    saveLeagueName(leagueState.code, leagueState.name);
   } catch (error) {
     leagueState = { error: error.message, code: activeLeague };
   }
+}
+
+async function loadKnownLeagueNames() {
+  if (!API || !leagueCodes.length) return;
+  const missingCodes = leagueCodes.filter((code) => !leagueNames[code] && code !== leagueState?.code);
+  if (!missingCodes.length) return;
+  const states = await Promise.allSettled(missingCodes.map((code) => api(`/state?code=${encodeURIComponent(code)}`)));
+  states.forEach((result) => {
+    if (result.status === "fulfilled") saveLeagueName(result.value.code, result.value.name);
+  });
+}
+
+function saveLeagueName(code, name) {
+  if (!code || !name) return;
+  leagueNames = { ...leagueNames, [code]: name };
+  localStorage.setItem(STORAGE.leagueNames, JSON.stringify(leagueNames));
 }
 
 function setActiveLeague(code, refresh = true) {
@@ -320,8 +340,13 @@ function picksView() {
 
 function leagueSwitcher() {
   if (!leagueCodes.length) return "";
-  return `<div class="filters">${leagueCodes.map((code) =>
-    `<button class="filter${activeLeague === code ? " active" : ""}" data-league="${code}">${leagueState?.code === code ? leagueState.name : code}</button>`
+  return `<div class="filters league-switcher">${leagueCodes.map((code) => {
+    const name = leagueState?.code === code ? leagueState.name : leagueNames[code];
+    const label = name
+      ? `<span class="league-filter-code">${code}</span><span class="league-filter-name">${escapeHTML(name)}</span>`
+      : `<span class="league-filter-name">${code}</span>`;
+    return `<button class="filter league-filter${activeLeague === code ? " active" : ""}" data-league="${code}">${label}</button>`;
+  }
   ).join("")}</div>`;
 }
 
@@ -423,7 +448,10 @@ document.addEventListener("click", async (event) => {
   const nav = event.target.closest("[data-view]");
   if (nav) {
     currentView = nav.dataset.view;
-    if (currentView === "league") await loadLeagueState();
+    if (currentView === "league") {
+      await loadLeagueState();
+      await loadKnownLeagueNames();
+    }
     render();
     scrollTo({ top: 0, behavior: "smooth" });
     return;
@@ -479,6 +507,7 @@ document.addEventListener("submit", async (event) => {
     try {
       const response = await api("/league", { uid: uid(), nickname: playerName, name });
       saveLeague(response.code);
+      saveLeagueName(response.code, response.name);
       if (response.recovery) localStorage.setItem(STORAGE.recovery, response.recovery);
       await loadLeagueState();
       flashMessage = `League ${response.code} created.`;
@@ -492,6 +521,7 @@ document.addEventListener("submit", async (event) => {
     try {
       const response = await api("/join", { uid: uid(), nickname: playerName, code });
       saveLeague(response.code);
+      saveLeagueName(response.code, response.name);
       if (response.recovery) localStorage.setItem(STORAGE.recovery, response.recovery);
       await loadLeagueState();
       history.replaceState({}, "", location.pathname);
@@ -512,6 +542,7 @@ document.addEventListener("submit", async (event) => {
       localStorage.setItem(STORAGE.leagues, JSON.stringify(leagueCodes));
       setActiveLeague(leagueCodes[0] || "", false);
       await loadLeagueState();
+      await loadKnownLeagueNames();
       flashMessage = "Identity and leagues restored.";
     } catch (error) { flashMessage = error.message; }
     render();
@@ -556,6 +587,9 @@ Promise.all([loadFixtures(), hydrateIdentity()]).then(() => {
 
 setInterval(async () => {
   await loadFixtures();
-  if (currentView === "league") await loadLeagueState();
+  if (currentView === "league") {
+    await loadLeagueState();
+    await loadKnownLeagueNames();
+  }
   render();
 }, 60_000);
