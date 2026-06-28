@@ -342,9 +342,7 @@ function leagueSwitcher() {
   if (!leagueCodes.length) return "";
   return `<div class="filters league-switcher">${leagueCodes.map((code) => {
     const name = leagueState?.code === code ? leagueState.name : leagueNames[code];
-    const label = name
-      ? `<span class="league-filter-code">${code}</span><span class="league-filter-name">${escapeHTML(name)}</span>`
-      : `<span class="league-filter-name">${code}</span>`;
+    const label = `<span class="league-filter-name">${escapeHTML(name || "League")}</span>`;
     return `<button class="filter league-filter${activeLeague === code ? " active" : ""}" data-league="${code}">${label}</button>`;
   }
   ).join("")}</div>`;

@@ -312,13 +312,7 @@ main {
 .league-filter {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   max-width: min(82vw, 310px);
-}
-.league-filter-code {
-  font-size: .66rem;
-  letter-spacing: .08em;
-  opacity: .78;
 }
 .league-filter-name {
   min-width: 0;
