@@ -109,10 +109,11 @@ async function hydrateIdentity() {
       localStorage.setItem(STORAGE.name, playerName);
     }
     if (me.recovery) localStorage.setItem(STORAGE.recovery, me.recovery);
-    if (me.leagues?.length) {
-      leagueCodes = [...new Set([...leagueCodes, ...me.leagues])];
+    if (Array.isArray(me.leagues)) {
+      leagueCodes = [...new Set(me.leagues.filter(Boolean))];
       localStorage.setItem(STORAGE.leagues, JSON.stringify(leagueCodes));
-      if (!activeLeague) setActiveLeague(leagueCodes[0], false);
+      pruneStoredLeagueNames();
+      if (!leagueCodes.includes(activeLeague)) setActiveLeague(leagueCodes[0] || "", false);
     }
     if (activeLeague) await loadLeagueState();
     await loadKnownLeagueNames();
@@ -127,6 +128,12 @@ async function loadLeagueState() {
     leagueState = await api(`/state?code=${encodeURIComponent(activeLeague)}`);
     saveLeagueName(leagueState.code, leagueState.name);
   } catch (error) {
+    if (/league not found/i.test(error.message)) {
+      removeStoredLeague(activeLeague);
+      if (activeLeague) return loadLeagueState();
+      leagueState = null;
+      return;
+    }
     leagueState = { error: error.message, code: activeLeague };
   }
 }
@@ -145,6 +152,24 @@ function saveLeagueName(code, name) {
   if (!code || !name) return;
   leagueNames = { ...leagueNames, [code]: name };
   localStorage.setItem(STORAGE.leagueNames, JSON.stringify(leagueNames));
+}
+
+function pruneStoredLeagueNames() {
+  const nextNames = Object.fromEntries(Object.entries(leagueNames).filter(([code]) => leagueCodes.includes(code)));
+  if (Object.keys(nextNames).length !== Object.keys(leagueNames).length) {
+    leagueNames = nextNames;
+    localStorage.setItem(STORAGE.leagueNames, JSON.stringify(leagueNames));
+  }
+}
+
+function removeStoredLeague(code) {
+  if (!code) return;
+  leagueCodes = leagueCodes.filter((leagueCode) => leagueCode !== code);
+  localStorage.setItem(STORAGE.leagues, JSON.stringify(leagueCodes));
+  const { [code]: _removed, ...remainingNames } = leagueNames;
+  leagueNames = remainingNames;
+  localStorage.setItem(STORAGE.leagueNames, JSON.stringify(leagueNames));
+  if (activeLeague === code) setActiveLeague(leagueCodes[0] || "", false);
 }
 
 function setActiveLeague(code, refresh = true) {
@@ -340,9 +365,11 @@ function picksView() {
 
 function leagueSwitcher() {
   if (!leagueCodes.length) return "";
-  return `<div class="filters league-switcher">${leagueCodes.map((code) => {
+  const namedLeagueCodes = leagueCodes.filter((code) => (leagueState?.code === code ? leagueState.name : leagueNames[code]));
+  if (!namedLeagueCodes.length) return "";
+  return `<div class="filters league-switcher">${namedLeagueCodes.map((code) => {
     const name = leagueState?.code === code ? leagueState.name : leagueNames[code];
-    const label = `<span class="league-filter-name">${escapeHTML(name || "League")}</span>`;
+    const label = `<span class="league-filter-name">${escapeHTML(name)}</span>`;
     return `<button class="filter league-filter${activeLeague === code ? " active" : ""}" data-league="${code}">${label}</button>`;
   }
   ).join("")}</div>`;
