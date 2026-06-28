@@ -75,6 +75,16 @@ async function allPicks(env, ids) {
   return Object.fromEntries(await Promise.all(ids.map(async (id) => [id, (await kvGet(env, `picks:${id}`)) || {}])));
 }
 
+async function userPicks(env, uid) {
+  if (!uid) return {};
+  const matchList = await fixtures(env);
+  const picksByMatch = await allPicks(env, matchList.map((match) => match.id));
+  return Object.fromEntries(Object.entries(picksByMatch)
+    .map(([matchId, matchPicks]) => [matchId, matchPicks[uid]])
+    .filter(([, pick]) => pick && pick.p1 != null && pick.p2 != null)
+    .map(([matchId, pick]) => [matchId, { p1: pick.p1, p2: pick.p2, savedAt: pick.ts || Date.now() }]));
+}
+
 async function createLeague(env, body) {
   const uid = String(body.uid || "").trim();
   if (!uid) return json({ error: "uid required" }, 400, env);
@@ -116,13 +126,19 @@ async function restore(env, body) {
   const uid = await kvGet(env, `recovery:${recovery}`);
   if (!uid) return json({ error: "recovery code not found" }, 404, env);
   const user = await kvGet(env, `user:${uid}`);
-  return json({ ok: true, uid, nickname: user?.nickname || "", leagues: user?.leagues || [], recovery }, 200, env);
+  return json({ ok: true, uid, nickname: user?.nickname || "", leagues: user?.leagues || [], recovery, picks: await userPicks(env, uid) }, 200, env);
 }
 
 async function getMe(env, url) {
   const uid = url.searchParams.get("uid") || "";
   const user = uid ? await kvGet(env, `user:${uid}`) : null;
   return json(user ? { uid, nickname: user.nickname, leagues: user.leagues || [], recovery: user.recovery } : { uid, leagues: [] }, 200, env);
+}
+
+async function getUserPicks(env, url) {
+  const uid = url.searchParams.get("uid") || "";
+  if (!uid) return json({ error: "uid required" }, 400, env);
+  return json({ uid, picks: await userPicks(env, uid) }, 200, env);
 }
 
 async function savePick(env, body) {
@@ -226,6 +242,7 @@ export default {
       if (request.method === "GET") {
         if (path === "/" || path === "/health") return json({ ok: true, service: "wimbledon-oracle-window" }, 200, env);
         if (path === "/me") return getMe(env, url);
+        if (path === "/picks") return getUserPicks(env, url);
         if (path === "/state") return state(env, url);
       }
       if (request.method === "POST") {

@@ -65,18 +65,29 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260628f", html)
-        self.assertIn("app.js?v=20260628f", html)
+        self.assertIn("styles.css?v=20260628g", html)
+        self.assertIn("app.js?v=20260628g", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v17-20260628", sw)
+        self.assertIn("wimbledon-oracle-v18-20260628", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("controllerchange", app)
         self.assertIn("registration.update()", app)
+
+    def test_restored_identity_rehydrates_server_picks(self):
+        app = (ROOT / "app.js").read_text()
+        worker = (ROOT / "worker/src/worker.js").read_text()
+        self.assertIn("async function syncUserPicks", app)
+        self.assertIn('api(`/picks?uid=${encodeURIComponent(uid())}`)', app)
+        self.assertIn("await syncUserPicks(true)", app)
+        self.assertIn("picks = response.picks || {}", app)
+        self.assertIn("async function userPicks", worker)
+        self.assertIn('if (path === "/picks") return getUserPicks(env, url);', worker)
+        self.assertIn("picks: await userPicks(env, uid)", worker)
 
     def test_league_switcher_uses_cached_names(self):
         app = (ROOT / "app.js").read_text()

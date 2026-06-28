@@ -117,9 +117,18 @@ async function hydrateIdentity() {
     }
     if (activeLeague) await loadLeagueState();
     await loadKnownLeagueNames();
+    await syncUserPicks();
   } catch {
     // The PWA remains usable for already-cached fixtures and picks while offline.
   }
+}
+
+async function syncUserPicks(replace = false) {
+  if (!API) return;
+  const response = await api(`/picks?uid=${encodeURIComponent(uid())}`);
+  const serverPicks = response.picks || {};
+  picks = replace ? serverPicks : { ...picks, ...serverPicks };
+  localStorage.setItem(STORAGE.picks, JSON.stringify(picks));
 }
 
 async function loadLeagueState() {
@@ -588,6 +597,9 @@ document.addEventListener("submit", async (event) => {
       leagueCodes = response.leagues || [];
       localStorage.setItem(STORAGE.leagues, JSON.stringify(leagueCodes));
       setActiveLeague(leagueCodes[0] || "", false);
+      picks = response.picks || {};
+      localStorage.setItem(STORAGE.picks, JSON.stringify(picks));
+      await syncUserPicks(true);
       await loadLeagueState();
       await loadKnownLeagueNames();
       flashMessage = "Identity and leagues restored.";
