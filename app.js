@@ -427,7 +427,7 @@ function leagueView() {
 function rulesView() {
   return `<div class="rules-card">
     <span class="eyebrow">Simple by design</span>
-    <h2>How Wimbledon Oracle works</h2>
+    <h2>How SW19 Oracle works</h2>
     <ul class="rules-list">
       <li>Predict the <strong>match score in sets</strong>, not each individual set.</li>
       <li>Gentlemen's singles: 3–0, 3–1 or 3–2 to either player.</li>
@@ -488,8 +488,8 @@ document.addEventListener("click", async (event) => {
   const share = event.target.closest("[data-share-league]");
   if (share) {
     const url = `${location.origin}${location.pathname}?league=${share.dataset.shareLeague}`;
-    const text = `Join my Wimbledon Oracle league ${share.dataset.shareLeague}: ${url}`;
-    if (navigator.share) await navigator.share({ title: "Wimbledon Oracle", text, url }).catch(() => {});
+    const text = `Join my SW19 Oracle league ${share.dataset.shareLeague}: ${url}`;
+    if (navigator.share) await navigator.share({ title: "SW19 Oracle", text, url }).catch(() => {});
     else await navigator.clipboard.writeText(text);
     flashMessage = "League invitation copied.";
     render();

@@ -1,6 +1,6 @@
 {
-  "name": "Wimbledon Oracle — 2026 Predictor",
-  "short_name": "Wimbledon Oracle",
+  "name": "SW19 Oracle — 2026 Predictor",
+  "short_name": "SW19 Oracle",
   "description": "Predict Wimbledon 2026 match scores in sets.",
   "start_url": "./",
   "scope": "./",

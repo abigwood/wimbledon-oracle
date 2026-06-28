@@ -1,4 +1,4 @@
-# Wimbledon Oracle
+# SW19 Oracle
 
 A separate Wimbledon 2026 set-score predictor inspired by Kickoff Oracle. It does not modify or replace the World Cup app.
 

@@ -64,7 +64,7 @@ input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-so
   color: var(--green);
   background: var(--grass);
   font-family: Georgia, serif;
-  font-size: 1.55rem;
+  font-size: 1.1rem;
   font-weight: 800;
 }
 .brand strong { display: block; overflow: hidden; font-family: Georgia, serif; font-size: 1.08rem; text-overflow: ellipsis; white-space: nowrap; }

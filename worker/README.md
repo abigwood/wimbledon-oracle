@@ -1,6 +1,6 @@
-# Wimbledon Oracle backend
+# SW19 Oracle backend
 
-Separate Cloudflare Worker and KV namespace for Wimbledon Oracle. It never reads
+Separate Cloudflare Worker and KV namespace for SW19 Oracle. It never reads
 or writes Kickoff Oracle's KV data.
 
 Scoring: exact set score 5; correct winner with a different set score 2; wrong
