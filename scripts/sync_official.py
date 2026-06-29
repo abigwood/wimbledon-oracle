@@ -296,12 +296,38 @@ def pending_slots(selected):
     return slots
 
 
+def stable_featured_selection(matches, date, tour, old_by_id):
+    remaining = {str(item.get("officialMatchId")): item for item in matches if item.get("officialMatchId")}
+    slots = [None] * FEATURED_PER_TOUR
+    for index in range(1, FEATURED_PER_TOUR + 1):
+        fixture_id = f"{date}-{tour}-{index}"
+        old = old_by_id.get(fixture_id) or {}
+        old_official = str(old.get("officialMatchId") or "")
+        if old_official in remaining:
+            slots[index - 1] = remaining.pop(old_official)
+    for item in matches:
+        official = str(item.get("officialMatchId") or "")
+        if official not in remaining:
+            continue
+        try:
+            empty_index = slots.index(None)
+        except ValueError:
+            break
+        slots[empty_index] = remaining.pop(official)
+    return [item for item in slots if item]
+
+
 def main():
     existing = load_existing()
     old_by_official = {
         str(item.get("officialMatchId")): item
         for item in existing.get("fixtures", [])
         if item.get("officialMatchId")
+    }
+    old_by_id = {
+        item.get("id"): item
+        for item in existing.get("fixtures", [])
+        if item.get("id") and item.get("officialMatchId")
     }
     now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
     raw = []
@@ -366,7 +392,7 @@ def main():
             matches = [item for item in raw if item["date"] == date and item["tour"] == tour]
             matches.sort(key=featured_sort_key)
             if date in FEATURED_DATES:
-                matches = matches[:FEATURED_PER_TOUR]
+                matches = stable_featured_selection(matches, date, tour, old_by_id)
             for index, item in enumerate(matches, 1):
                 item["id"] = f"{date}-{tour}-{index}"
                 item.pop("order", None)

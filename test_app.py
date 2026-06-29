@@ -191,6 +191,8 @@ class WimbledonOracleTests(unittest.TestCase):
         sync = (ROOT / "scripts/sync_official.py").read_text()
         self.assertIn('SHOW_COURTS = ("Centre Court", "No. 1 Court", "No. 2 Court", "No. 3 Court")', sync)
         self.assertIn("def featured_sort_key", sync)
+        self.assertIn("def stable_featured_selection", sync)
+        self.assertIn("old_by_id", sync)
         self.assertIn('"tieBreakers": ["seeded players", "official order of play"]', sync)
 
     def test_separate_backend_configuration(self):
