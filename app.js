@@ -1,4 +1,5 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
+const TOURNAMENT_START_DATE = "2026-06-29";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -211,10 +212,32 @@ function matchTime(match) {
   return match.time || "Time TBC";
 }
 
-function daysToStart() {
-  const diff = TOURNAMENT_START - Date.now();
-  if (diff <= 0) return "The Championships are under way";
-  const days = Math.ceil(diff / 86400000);
+function londonDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${byType.year}-${byType.month}-${byType.day}`;
+}
+
+function calendarDayDiff(fromKey, toKey) {
+  const utcMidday = (key) => {
+    const [year, month, day] = key.split("-").map(Number);
+    return Date.UTC(year, month - 1, day);
+  };
+  const from = utcMidday(fromKey);
+  const to = utcMidday(toKey);
+  return Math.max(0, Math.round((to - from) / 86400000));
+}
+
+function daysToStart(now = new Date()) {
+  if (now >= TOURNAMENT_START) return "The Championships are under way";
+  const today = londonDateKey(now);
+  if (today >= TOURNAMENT_START_DATE) return "Wimbledon starts today";
+  const days = calendarDayDiff(today, TOURNAMENT_START_DATE);
   return `${days} day${days === 1 ? "" : "s"} until first play`;
 }
 
