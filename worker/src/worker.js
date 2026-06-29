@@ -28,6 +28,15 @@ const kvGet = (env, key) => env.KV.get(key, "json");
 const kvPut = (env, key, value) => env.KV.put(key, JSON.stringify(value));
 const randomBytes = (n) => crypto.getRandomValues(new Uint8Array(n));
 
+export function mergeResultOverlay(match, overlay) {
+  if (!overlay) return match;
+  const officialResult = normaliseResult(match);
+  const merged = { ...match, ...overlay };
+  const overlayResult = normaliseResult(merged);
+  if ((officialResult || isVoided(match)) && !overlayResult && !isVoided(merged)) return match;
+  return merged;
+}
+
 async function fixtures(env, fresh = false) {
   const now = Date.now();
   if (!fresh && fixtureCache && now - fixtureCacheAt < CACHE_MS) return fixtureCache;
@@ -37,7 +46,7 @@ async function fixtures(env, fresh = false) {
   const resultStore = (await kvGet(env, "results")) || {};
   fixtureCache = (body.fixtures || []).map((match) => {
     const result = resultStore[match.id];
-    return result ? { ...match, ...result } : match;
+    return mergeResultOverlay(match, result);
   });
   fixtureCacheAt = now;
   return fixtureCache;
