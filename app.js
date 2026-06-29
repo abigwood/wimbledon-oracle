@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260629f";
+const APP_BUILD = "20260629g";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -472,6 +472,179 @@ function whatsappUrlFor(text) {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
+function roundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function fitText(ctx, text, maxWidth, fontFactory, maxSize, minSize) {
+  let size = maxSize;
+  do {
+    ctx.font = fontFactory(size);
+    if (ctx.measureText(text).width <= maxWidth) return size;
+    size -= 2;
+  } while (size >= minSize);
+  ctx.font = fontFactory(minSize);
+  return minSize;
+}
+
+function drawLeagueTableCard(state) {
+  const W = 1080;
+  const H = 1350;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  const rows = state.table || [];
+  const topRows = rows.slice(0, 10);
+  const updated = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    timeZone: "Europe/London",
+  }).format(new Date());
+
+  ctx.fillStyle = "#f7f3e8";
+  ctx.fillRect(0, 0, W, H);
+  const wash = ctx.createRadialGradient(120, 80, 40, 120, 80, 680);
+  wash.addColorStop(0, "rgba(216, 230, 189, .9)");
+  wash.addColorStop(1, "rgba(216, 230, 189, 0)");
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "rgba(20, 61, 43, .08)";
+  ctx.lineWidth = 2;
+  for (let x = 80; x < W; x += 110) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 150; y < H; y += 110) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  roundedRect(ctx, 48, 48, W - 96, H - 96, 34);
+  ctx.fillStyle = "rgba(255, 255, 255, .88)";
+  ctx.fill();
+  ctx.strokeStyle = "#d8ded7";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  roundedRect(ctx, 48, 48, W - 96, 182, 34);
+  ctx.fillStyle = "#143d2b";
+  ctx.fill();
+  ctx.fillStyle = "#5b2a86";
+  ctx.fillRect(48, 216, W - 96, 14);
+
+  ctx.fillStyle = "#d8e6bd";
+  ctx.font = "900 42px Georgia, -apple-system, sans-serif";
+  ctx.fillText("SW", 88, 128);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "900 54px Georgia, -apple-system, sans-serif";
+  ctx.fillText("SW19 ORACLE", 178, 130);
+  ctx.fillStyle = "#cfdbc9";
+  ctx.font = "800 26px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("LIVE LEAGUE TABLE", 180, 170);
+
+  ctx.fillStyle = "#17221c";
+  fitText(ctx, state.name, W - 130, (size) => `900 ${size}px -apple-system, BlinkMacSystemFont, sans-serif`, 64, 38);
+  ctx.fillText(state.name, 78, 310);
+  ctx.fillStyle = "#657269";
+  ctx.font = "800 30px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText(`Standings · ${updated}`, 78, 354);
+  ctx.textAlign = "right";
+  ctx.font = "900 26px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText("PTS", W - 110, 388);
+  ctx.textAlign = "left";
+
+  const startY = 410;
+  const rowH = Math.max(76, Math.min(104, (H - startY - 180) / Math.max(topRows.length, 1)));
+  topRows.forEach((row, index) => {
+    const y = startY + index * rowH;
+    const highlight = index < 3;
+    roundedRect(ctx, 78, y, W - 156, rowH - 12, 18);
+    ctx.fillStyle = highlight ? "#ecf6e3" : "#ffffff";
+    ctx.fill();
+    ctx.strokeStyle = highlight ? "#143d2b" : "#d8ded7";
+    ctx.lineWidth = highlight ? 4 : 2;
+    ctx.stroke();
+
+    const mid = y + (rowH - 12) / 2;
+    const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : String(row.rank || index + 1);
+    ctx.textAlign = "center";
+    ctx.fillStyle = index < 3 ? "#5b2a86" : "#657269";
+    ctx.font = "900 38px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.fillText(medal, 135, mid + 14);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#17221c";
+    fitText(ctx, row.nick, 520, (size) => `900 ${size}px -apple-system, BlinkMacSystemFont, sans-serif`, 42, 26);
+    ctx.fillText(row.nick, 210, mid - 6);
+    ctx.fillStyle = "#657269";
+    ctx.font = "800 25px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.fillText(`${row.exact} exact · ${row.correct} winner`, 210, mid + 30);
+
+    const movement = Number(row.movement || 0);
+    const arrow = movement > 0 ? "▲" : movement < 0 ? "▼" : "–";
+    const arrowColor = movement > 0 ? "#087f5b" : movement < 0 ? "#d6336c" : "#657269";
+    ctx.textAlign = "right";
+    ctx.fillStyle = highlight ? "#143d2b" : "#17221c";
+    ctx.font = "900 58px Georgia, -apple-system, sans-serif";
+    ctx.fillText(String(row.pts), W - 108, mid + 18);
+    ctx.fillStyle = arrowColor;
+    ctx.font = "900 32px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.fillText(arrow, W - 210, mid + 8);
+    ctx.textAlign = "left";
+  });
+
+  ctx.strokeStyle = "#d8ded7";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(78, H - 142);
+  ctx.lineTo(W - 78, H - 142);
+  ctx.stroke();
+  ctx.fillStyle = "#657269";
+  ctx.font = "800 28px -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.fillText(`exact = 5 · winner = 2 · join with code ${state.code}`, 78, H - 92);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#5b2a86";
+  ctx.font = "900 32px Georgia, -apple-system, sans-serif";
+  ctx.fillText("SW19 ORACLE", W - 78, H - 92);
+  ctx.textAlign = "left";
+
+  return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+
+async function shareLeagueTableGraphic(state) {
+  const blob = await drawLeagueTableCard(state);
+  if (!blob) throw new Error("Could not create league table graphic.");
+  const link = `${location.origin}${location.pathname}?league=${state.code}`;
+  const text = `🏆 ${state.name} — SW19 Oracle live league table. Tap to join and get your picks in: ${link}`;
+  const file = new File([blob], "sw19-league-table.png", { type: "image/png" });
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({ files: [file], text, title: `${state.name} league table` });
+    return;
+  }
+  if (navigator.share) {
+    await navigator.share({ text, title: `${state.name} league table` });
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "sw19-league-table.png";
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function leagueView() {
   const recovery = localStorage.getItem(STORAGE.recovery);
   const joinDefault = inviteCode || "";
@@ -617,14 +790,19 @@ document.addEventListener("click", async (event) => {
   }
   const exportTable = event.target.closest("[data-export-league-table]");
   if (exportTable && leagueState?.table?.length) {
-    const text = leagueTableText(leagueState);
-    const url = whatsappUrlFor(text);
-    if (navigator.share) {
-      await navigator.share({ title: "SW19 Oracle league table", text }).catch(() => {
-        location.href = url;
-      });
-    } else {
-      location.href = url;
+    const originalText = exportTable.textContent;
+    exportTable.textContent = "Building share card...";
+    exportTable.disabled = true;
+    try {
+      await shareLeagueTableGraphic(leagueState);
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        const text = leagueTableText(leagueState);
+        location.href = whatsappUrlFor(text);
+      }
+    } finally {
+      exportTable.textContent = originalText;
+      exportTable.disabled = false;
     }
     return;
   }
