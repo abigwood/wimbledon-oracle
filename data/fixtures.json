@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-29T17:38:04.572578Z",
+  "updatedAt": "2026-06-29T17:56:58.194007Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -207,10 +207,21 @@
       "flag2": "🏳️",
       "court": "Court 12",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-06-29T17:56:58.194007Z",
+      "status": "live",
       "result": null,
-      "liveScore": null,
+      "liveScore": {
+        "sets": [
+          [
+            "3",
+            "2"
+          ]
+        ],
+        "game": [
+          "0",
+          "0"
+        ]
+      },
       "id": "2026-06-29-women-2",
       "h2h": {
         "p1": 1,
