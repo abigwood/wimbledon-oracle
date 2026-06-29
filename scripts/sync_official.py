@@ -356,6 +356,11 @@ def main():
                     start_at = court_start
                 status = status_for(match)
                 old = old_by_official.get(str(match.get("matchId")), {})
+                # Never regress a completed result back to live/upcoming if the
+                # API briefly returns stale data between update cycles.
+                old_status = old.get("status")
+                if old_status in ("complete", "retired", "walkover", "abandoned") and status not in ("complete", "retired", "walkover", "abandoned"):
+                    status = old_status
                 lock_at = old.get("lockAt")
                 if not lock_at and status != "upcoming":
                     lock_at = now
@@ -383,7 +388,8 @@ def main():
                     "startAt": start_at,
                     "lockAt": lock_at,
                     "status": status,
-                    "result": result_for(match),
+                    # Preserve existing result if the API temporarily returns none
+                    "result": result_for(match) or old.get("result"),
                 })
 
     selected = []
