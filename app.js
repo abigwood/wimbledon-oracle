@@ -1,5 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
+const APP_BUILD = "20260629e";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -542,9 +543,12 @@ function updateInProgress() {
   return Boolean(busyMatch);
 }
 
-function safeUpdateReload() {
+function safeUpdateReload(force = false) {
   if (updateReloading) return;
   if (updateInProgress()) { pendingUpdateReload = true; return; }
+  const appliedKey = "wimbledon_oracle_applied_build";
+  if (!force && sessionStorage.getItem(appliedKey) === APP_BUILD) return;
+  sessionStorage.setItem(appliedKey, APP_BUILD);
   updateReloading = true;
   location.reload();
 }
@@ -713,6 +717,12 @@ if ("serviceWorker" in navigator) {
           if (workerToApply) workerToApply.postMessage({ type: "SKIP_WAITING" });
           else if (registration) await registration.update();
         } catch {}
+        safeUpdateReload(true);
+        setTimeout(() => {
+          updateReloading = false;
+          prompt.classList.remove("updating");
+          prompt.querySelector("strong").textContent = "Try again";
+        }, 5000);
       });
       document.body.appendChild(prompt);
     }
