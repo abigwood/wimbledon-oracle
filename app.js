@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260629l";
+const APP_BUILD = "20260629m";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -731,6 +731,20 @@ function escapeHTML(value) {
   return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 }
 
+function appScroller() {
+  return document.getElementById("app");
+}
+
+function currentScrollTop() {
+  return appScroller()?.scrollTop ?? scrollY;
+}
+
+function scrollAppToTop(options = {}) {
+  const target = appScroller();
+  if (target) target.scrollTo({ top: 0, ...options });
+  else scrollTo({ top: 0, ...options });
+}
+
 function restoreScroll(anchorMatchId, previousScrollY) {
   if (anchorMatchId) {
     const card = document.querySelector(`[data-match-card="${CSS.escape(anchorMatchId)}"]`);
@@ -739,7 +753,11 @@ function restoreScroll(anchorMatchId, previousScrollY) {
       return;
     }
   }
-  if (Number.isFinite(previousScrollY)) scrollTo({ top: previousScrollY });
+  if (Number.isFinite(previousScrollY)) {
+    const target = appScroller();
+    if (target) target.scrollTo({ top: previousScrollY });
+    else scrollTo({ top: previousScrollY });
+  }
 }
 
 function rememberMatchDay(matchId) {
@@ -748,7 +766,7 @@ function rememberMatchDay(matchId) {
 }
 
 function render(options = {}) {
-  const previousScrollY = options.preserveScroll ? scrollY : null;
+  const previousScrollY = options.preserveScroll ? currentScrollTop() : null;
   const views = { today: todayView, schedule: scheduleView, picks: picksView, league: leagueView, rules: rulesView };
   document.getElementById("app").innerHTML = views[currentView]();
   document.getElementById("profileInitial").textContent = playerInitial();
@@ -786,7 +804,7 @@ document.addEventListener("click", async (event) => {
       await loadKnownLeagueNames();
     }
     render();
-    scrollTo({ top: 0, behavior: "smooth" });
+    scrollAppToTop({ behavior: "smooth" });
     return;
   }
   const filter = event.target.closest("[data-filter]");

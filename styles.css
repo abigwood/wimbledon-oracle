@@ -17,16 +17,31 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--cream); }
+html {
+  height: 100%;
+  background: var(--cream);
+  overflow: hidden;
+}
 body {
+  display: flex;
+  flex-direction: column;
   margin: 0;
+  height: 100vh;
   min-height: 100vh;
+  max-height: 100vh;
   color: var(--ink);
   background:
     radial-gradient(circle at 0 0, rgba(216, 230, 189, .75), transparent 34rem),
     var(--cream);
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  overflow-x: hidden;
+  overflow: hidden;
+}
+@supports (height: 100dvh) {
+  body {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+  }
 }
 button, input { font: inherit; }
 button { cursor: pointer; }
@@ -42,8 +57,8 @@ input {
 input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-soft); }
 
 .app-header {
-  position: sticky;
-  top: 0;
+  flex: none;
+  position: relative;
   z-index: 20;
   display: flex;
   align-items: center;
@@ -85,12 +100,16 @@ input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px var(--purple-so
 }
 
 main {
+  flex: 1 1 auto;
   width: min(760px, 100%);
-  min-height: calc(100vh - 140px);
+  min-height: 0;
   margin: 0 auto;
-  padding: 18px 16px calc(var(--nav-total-height) + 84px);
+  padding: 18px 16px 28px;
+  overflow-y: auto;
   overflow-x: hidden;
-  scroll-padding-bottom: calc(var(--nav-total-height) + 84px);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-bottom: 28px;
 }
 .hero {
   position: relative;
@@ -470,7 +489,8 @@ main {
 .wide { width: 100%; margin-top: 16px; }
 
 .bottom-nav {
-  position: fixed;
+  flex: none;
+  position: relative;
   right: 0;
   bottom: 0;
   left: 0;

@@ -65,16 +65,16 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260629l", html)
-        self.assertIn("app.js?v=20260629l", html)
+        self.assertIn("styles.css?v=20260629m", html)
+        self.assertIn("app.js?v=20260629m", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v30-20260629", sw)
-        self.assertIn("styles.css?v=20260629l", sw)
-        self.assertIn("app.js?v=20260629l", sw)
+        self.assertIn("wimbledon-oracle-v31-20260629", sw)
+        self.assertIn("styles.css?v=20260629m", sw)
+        self.assertIn("app.js?v=20260629m", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("new Request(asset, { cache: \"reload\" })", sw)
@@ -85,7 +85,7 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("registration.update()", app)
         self.assertIn("updateViaCache: \"none\"", app)
         self.assertIn("pendingUpdateReload", app)
-        self.assertIn('const APP_BUILD = "20260629l"', app)
+        self.assertIn('const APP_BUILD = "20260629m"', app)
         self.assertIn("safeUpdateReload(true)", app)
         self.assertIn("Try again", app)
         self.assertNotIn("self.skipWaiting();\n});\n\nself.addEventListener(\"activate\"", sw)
@@ -99,13 +99,23 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn(".app-update-prompt", css)
         self.assertIn("Tap to update", (ROOT / "app.js").read_text())
 
-    def test_bottom_nav_uses_fixed_safe_area_height(self):
+    def test_bottom_nav_uses_shell_footer_not_fixed_overlay(self):
         css = (ROOT / "styles.css").read_text()
-        self.assertIn("--nav-total-height: calc(var(--nav-height) + var(--safe-bottom))", css)
+        app = (ROOT / "app.js").read_text()
+        self.assertIn("body {\n  display: flex;", css)
+        self.assertIn("height: 100dvh", css)
+        self.assertIn("overflow: hidden", css)
+        self.assertIn("main {\n  flex: 1 1 auto;", css)
+        self.assertIn("overflow-y: auto", css)
+        self.assertIn("-webkit-overflow-scrolling: touch", css)
+        self.assertIn("flex: none;\n  position: relative;", css)
+        self.assertNotIn("position: fixed;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  z-index: 30;", css)
         self.assertIn("height: var(--nav-total-height)", css)
         self.assertIn("align-items: center", css)
         self.assertIn("padding: 7px 5px max(var(--safe-bottom), 6px)", css)
         self.assertIn("bottom: calc(var(--nav-total-height) + 12px)", css)
+        self.assertIn("function appScroller", app)
+        self.assertIn("function scrollAppToTop", app)
 
     def test_schedule_day_and_match_position_survive_pick_save(self):
         app = (ROOT / "app.js").read_text()
