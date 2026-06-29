@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-29T16:40:38.509501Z",
+  "updatedAt": "2026-06-29T16:47:56.902137Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -51,6 +51,7 @@
         3,
         2
       ],
+      "liveScore": null,
       "id": "2026-06-29-men-1",
       "h2h": {
         "p1": 4,
@@ -80,6 +81,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-29-men-2",
       "h2h": {
         "p1": 0,
@@ -112,6 +114,7 @@
         2,
         3
       ],
+      "liveScore": null,
       "id": "2026-06-29-men-3",
       "h2h": {
         "p1": 0,
@@ -144,6 +147,7 @@
         3,
         0
       ],
+      "liveScore": null,
       "id": "2026-06-29-men-4",
       "h2h": {
         "p1": 0,
@@ -173,6 +177,18 @@
       "lockAt": "2026-06-29T16:39:24.661155Z",
       "status": "live",
       "result": null,
+      "liveScore": {
+        "sets": [
+          [
+            "4",
+            "0"
+          ]
+        ],
+        "game": [
+          "15",
+          "15"
+        ]
+      },
       "id": "2026-06-29-women-1",
       "h2h": {
         "p1": 0,
@@ -202,6 +218,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-29-women-2",
       "h2h": {
         "p1": 1,
@@ -234,6 +251,7 @@
         2,
         0
       ],
+      "liveScore": null,
       "id": "2026-06-29-women-3",
       "h2h": {
         "p1": 0,
@@ -266,6 +284,7 @@
         0,
         2
       ],
+      "liveScore": null,
       "id": "2026-06-29-women-4",
       "h2h": {
         "p1": 0,
@@ -295,6 +314,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-men-1",
       "h2h": {
         "p1": 2,
@@ -324,6 +344,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-men-2",
       "h2h": {
         "p1": 1,
@@ -353,6 +374,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-men-3",
       "h2h": {
         "p1": 1,
@@ -382,6 +404,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-men-4",
       "h2h": {
         "p1": 2,
@@ -411,6 +434,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-women-1",
       "h2h": {
         "p1": 0,
@@ -440,6 +464,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-women-2",
       "h2h": {
         "p1": 0,
@@ -469,6 +494,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-women-3",
       "h2h": {
         "p1": 0,
@@ -498,6 +524,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
+      "liveScore": null,
       "id": "2026-06-30-women-4",
       "h2h": {
         "p1": 0,

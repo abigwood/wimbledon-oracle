@@ -29,7 +29,11 @@ query Schedule($year: Int!, $day: Int!) {
         matchId order notBefore eventName eventCode roundName status statusCode comment courtName
         team1 { displayNameA seed won nationA }
         team2 { displayNameA seed won nationA }
-        score { setsWon }
+        score {
+          setsWon
+          tennisSets { set team1 { scoreDisplay tiebreakDisplay } team2 { scoreDisplay tiebreakDisplay } }
+          gameScore
+        }
       }
     }
   }
@@ -240,6 +244,35 @@ def status_for(match):
     return "upcoming"
 
 
+def livescore_for(match):
+    """Return live set scores + current game score for in-progress matches.
+    Returns None if the match is not live or has no score data.
+    Format: { sets: [[p1,p2], ...], game: [p1,p2] }
+    where each set is [p1_games, p2_games] and game is current point scores.
+    """
+    if status_for(match) != "live":
+        return None
+    score = match.get("score") or {}
+    if isinstance(score, list):
+        score = score[0] if score else {}
+    ts = score.get("tennisSets") or []
+    gs = score.get("gameScore") or []
+    sets = []
+    for s in ts:
+        t1s = (s.get("team1") or {}).get("scoreDisplay") or "0"
+        t2s = (s.get("team2") or {}).get("scoreDisplay") or "0"
+        tb1 = (s.get("team1") or {}).get("tiebreakDisplay")
+        tb2 = (s.get("team2") or {}).get("tiebreakDisplay")
+        entry = [t1s, t2s]
+        if tb1 or tb2:
+            entry = [f"{t1s}({tb1})", f"{t2s}({tb2})"]
+        sets.append(entry)
+    game = list(gs[:2]) if gs else []
+    if not sets and not game:
+        return None
+    return {"sets": sets, "game": game}
+
+
 def result_for(match):
     if status_for(match) != "complete":
         return None
@@ -390,6 +423,7 @@ def main():
                     "status": status,
                     # Preserve existing result if the API temporarily returns none
                     "result": result_for(match) or old.get("result"),
+                    "liveScore": livescore_for(match),
                 })
 
     selected = []

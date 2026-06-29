@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260629g";
+const APP_BUILD = "20260629h";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -288,10 +288,19 @@ function matchOpen(match) {
   return Boolean(match.officialMatchId && String(match.status || "upcoming").toLowerCase() === "upcoming");
 }
 
+function liveScoreBanner(match) {
+  const ls = match.liveScore;
+  if (!ls || match.status !== "live") return "";
+  const sets = (ls.sets || []).map(([a, b]) => `${a}–${b}`).join(" ");
+  const game = (ls.game || []).length === 2 ? ` · ${ls.game[0]}–${ls.game[1]}` : "";
+  return `<div class="live-score-banner"><span class="live-pip">●</span> Live: ${escapeHTML(sets || "–")}${escapeHTML(game)}</div>`;
+}
+
 function resultText(match) {
   const result = Array.isArray(match.result) ? match.result : match.result && [match.result.p1, match.result.p2];
   if (result?.length === 2) return `Final: ${result[0]}–${result[1]}`;
   if (["walkover", "retired", "cancelled", "abandoned"].includes(String(match.status).toLowerCase())) return "Void";
+  if (match.status === "live") return "In progress";
   if (match.startAt && Date.now() >= Date.parse(match.startAt)) return "Picks locked";
   return "Predictions open";
 }
@@ -356,6 +365,7 @@ function matchCard(match) {
       <div class="player-row"><span class="seed">${match.seed2 ? `[${match.seed2}]` : ""}</span>${playerLabel(match, 2, "Opponent TBC")}</div>
       ${h2h ? `<div class="h2h-line">${escapeHTML(h2h)}</div>` : ""}
     </div>
+    ${liveScoreBanner(match)}
     <div class="pick-zone">
       <div class="pick-label">${ready ? resultText(match) : "Predictions open when players are confirmed"}</div>
       ${pick ? pickStatus(match, pick, open) : ""}
