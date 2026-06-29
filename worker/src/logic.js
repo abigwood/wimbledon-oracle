@@ -58,6 +58,23 @@ export function computeTable(members, completed, picksByMatch) {
   return rows;
 }
 
+export function computeTableWithMovement(members, completed, picksByMatch) {
+  const table = computeTable(members, completed, picksByMatch);
+  const orderedCompleted = [...completed].sort((a, b) =>
+    (a.startMs || 0) - (b.startMs || 0) || String(a.id).localeCompare(String(b.id))
+  );
+  if (orderedCompleted.length < 2) {
+    return table.map((row, index) => ({ ...row, rank: index + 1, previousRank: null, movement: 0 }));
+  }
+  const previousCompleted = orderedCompleted.slice(0, -1);
+  const previousRanks = new Map(computeTable(members, previousCompleted, picksByMatch).map((row, index) => [row.uid, index + 1]));
+  return table.map((row, index) => {
+    const rank = index + 1;
+    const previousRank = previousRanks.get(row.uid) || null;
+    return { ...row, rank, previousRank, movement: previousRank ? previousRank - rank : 0 };
+  });
+}
+
 export function buildReveals(members, matches, picksByMatch, nowMs) {
   return matches
     .filter((match) => matchLocked(match, nowMs))

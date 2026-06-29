@@ -385,6 +385,19 @@ main {
 .table { width: 100%; border-collapse: collapse; font-size: .82rem; }
 .table th, .table td { padding: 10px 5px; border-bottom: 1px solid var(--line); text-align: right; }
 .table th:first-child, .table td:first-child { text-align: left; }
+.league-table th:nth-child(2), .league-table td:nth-child(2) { width: 46px; text-align: center; }
+.movement {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: .78rem;
+  font-weight: 900;
+}
+.movement-up { color: #087f5b; background: rgba(8, 127, 91, .1); }
+.movement-down { color: #d6336c; background: rgba(214, 51, 108, .1); }
+.movement-flat { color: var(--muted); background: #eef1ec; }
 .you { color: var(--purple); font-weight: 900; }
 .secondary {
   padding: 10px 14px;
@@ -392,6 +405,14 @@ main {
   border-radius: 10px;
   color: var(--purple);
   background: var(--white);
+  font-weight: 900;
+}
+.whatsapp-share {
+  padding: 13px 14px;
+  border: 0;
+  border-radius: 12px;
+  color: #08251a;
+  background: #28d7c8;
   font-weight: 900;
 }
 .reveal-card { margin-bottom: 10px; }

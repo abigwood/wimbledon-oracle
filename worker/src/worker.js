@@ -1,6 +1,6 @@
 import {
   buildReveals,
-  computeTable,
+  computeTableWithMovement,
   isVoided,
   matchLocked,
   makeCode,
@@ -193,7 +193,7 @@ async function state(env, url) {
     code,
     name: league.name,
     owner: league.owner,
-    table: computeTable(memberList, completed, picks),
+    table: computeTableWithMovement(memberList, completed, picks),
     reveals: buildReveals(memberList, matchList, picks, Date.now()).slice(0, 20),
   }, 200, env);
 }

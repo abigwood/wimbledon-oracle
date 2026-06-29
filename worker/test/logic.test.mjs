@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildReveals, computeTable, normaliseResult, scorePick, validSetScore, windowState } from "../src/logic.js";
+import { buildReveals, computeTable, computeTableWithMovement, normaliseResult, scorePick, validSetScore, windowState } from "../src/logic.js";
 
 test("tennis set scores validate by tour", () => {
   assert.equal(validSetScore("men", 3, 2), true);
@@ -36,6 +36,32 @@ test("standings reject post-start picks and sort by points", () => {
   assert.equal(rows[0].nick, "Adam");
   assert.equal(rows[0].pts, 5);
   assert.equal(rows[1].pts, 0);
+});
+
+test("standings include movement after the latest completed match", () => {
+  const members = [{ uid: "a", nick: "Adam", since: 0 }, { uid: "b", nick: "Ben", since: 0 }, { uid: "c", nick: "Aaron", since: 0 }];
+  const completed = [
+    { id: "m1", startMs: 1000, result: { p1: 2, p2: 0 }, voided: false },
+    { id: "m2", startMs: 2000, result: { p1: 0, p2: 2 }, voided: false },
+  ];
+  const picks = {
+    m1: {
+      a: { p1: 2, p2: 0, ts: 900 },
+      b: { p1: 2, p2: 1, ts: 900 },
+      c: { p1: 0, p2: 2, ts: 900 },
+    },
+    m2: {
+      a: { p1: 2, p2: 0, ts: 1900 },
+      b: { p1: 0, p2: 2, ts: 1900 },
+      c: { p1: 0, p2: 2, ts: 1900 },
+    },
+  };
+  const rows = computeTableWithMovement(members, completed, picks);
+  assert.deepEqual(rows.map((row) => [row.nick, row.rank, row.previousRank, row.movement]), [
+    ["Ben", 1, 2, 1],
+    ["Aaron", 2, 3, 1],
+    ["Adam", 3, 1, -2],
+  ]);
 });
 
 test("reveals stay hidden before start and expose all members after start", () => {

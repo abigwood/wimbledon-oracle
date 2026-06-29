@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260629e";
+const APP_BUILD = "20260629f";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -444,6 +444,34 @@ function revealCard(reveal) {
   </div>`;
 }
 
+function movementBadge(row) {
+  const value = Number(row.movement || 0);
+  if (value > 0) return `<span class="movement movement-up" aria-label="Up ${value} place${value === 1 ? "" : "s"}">▲</span>`;
+  if (value < 0) return `<span class="movement movement-down" aria-label="Down ${Math.abs(value)} place${Math.abs(value) === 1 ? "" : "s"}">▼</span>`;
+  return `<span class="movement movement-flat" aria-label="No position change">–</span>`;
+}
+
+function leagueTableText(state) {
+  const updated = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/London",
+  }).format(new Date());
+  const rows = (state.table || []).map((row, index) => {
+    const rank = row.rank || index + 1;
+    const movement = Number(row.movement || 0);
+    const marker = movement > 0 ? `▲${movement}` : movement < 0 ? `▼${Math.abs(movement)}` : "–";
+    return `${rank}. ${row.nick} ${marker} — ${row.pts} pts (${row.exact} exact)`;
+  });
+  return `SW19 Oracle league table — ${state.name}\nUpdated ${updated}\n\n${rows.join("\n")}\n\nJoin with code ${state.code}`;
+}
+
+function whatsappUrlFor(text) {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+}
+
 function leagueView() {
   const recovery = localStorage.getItem(STORAGE.recovery);
   const joinDefault = inviteCode || "";
@@ -476,8 +504,9 @@ function leagueView() {
           <h2>${escapeHTML(state.name)}</h2>
           <div class="league-code"><span>League code</span><strong>${state.code}</strong></div>
           <button class="secondary wide" type="button" data-share-league="${state.code}">Invite mates</button>
-          <table class="table"><thead><tr><th>Player</th><th>Pts</th><th>Exact</th></tr></thead>
-          <tbody>${state.table.map((row, index) => `<tr><td class="${row.uid === uid() ? "you" : ""}">${index + 1}. ${escapeHTML(row.nick)}${row.uid === uid() ? " (you)" : ""}</td><td>${row.pts}</td><td>${row.exact}</td></tr>`).join("")}</tbody></table>
+          <table class="table league-table"><thead><tr><th>Player</th><th>Move</th><th>Pts</th><th>Exact</th></tr></thead>
+          <tbody>${state.table.map((row, index) => `<tr><td class="${row.uid === uid() ? "you" : ""}">${row.rank || index + 1}. ${escapeHTML(row.nick)}${row.uid === uid() ? " (you)" : ""}</td><td>${movementBadge(row)}</td><td>${row.pts}</td><td>${row.exact}</td></tr>`).join("")}</tbody></table>
+          <button class="whatsapp-share wide" type="button" data-export-league-table="${state.code}">Share table to WhatsApp</button>
         </section>
         ${state.reveals?.length ? `<div class="section-head"><div><span class="eyebrow">After match start</span><h2>Recent reveals</h2></div></div>${state.reveals.map(revealCard).join("")}` : ""}`;
   return `<div class="section-head"><div><span class="eyebrow">Private predictor leagues</span><h2>League table</h2></div></div>${flash()}${leagueSwitcher()}${content}${controls}${restore}`;
@@ -584,6 +613,19 @@ document.addEventListener("click", async (event) => {
     else await navigator.clipboard.writeText(text);
     flashMessage = "League invitation copied.";
     render();
+    return;
+  }
+  const exportTable = event.target.closest("[data-export-league-table]");
+  if (exportTable && leagueState?.table?.length) {
+    const text = leagueTableText(leagueState);
+    const url = whatsappUrlFor(text);
+    if (navigator.share) {
+      await navigator.share({ title: "SW19 Oracle league table", text }).catch(() => {
+        location.href = url;
+      });
+    } else {
+      location.href = url;
+    }
     return;
   }
   const updatePick = event.target.closest("[data-update-pick]");

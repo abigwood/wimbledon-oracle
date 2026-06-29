@@ -65,16 +65,16 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260629e", html)
-        self.assertIn("app.js?v=20260629e", html)
+        self.assertIn("styles.css?v=20260629f", html)
+        self.assertIn("app.js?v=20260629f", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v23-20260629", sw)
-        self.assertIn("styles.css?v=20260629e", sw)
-        self.assertIn("app.js?v=20260629e", sw)
+        self.assertIn("wimbledon-oracle-v24-20260629", sw)
+        self.assertIn("styles.css?v=20260629f", sw)
+        self.assertIn("app.js?v=20260629f", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("new Request(asset, { cache: \"reload\" })", sw)
@@ -85,7 +85,7 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("registration.update()", app)
         self.assertIn("updateViaCache: \"none\"", app)
         self.assertIn("pendingUpdateReload", app)
-        self.assertIn('const APP_BUILD = "20260629e"', app)
+        self.assertIn('const APP_BUILD = "20260629f"', app)
         self.assertIn("safeUpdateReload(true)", app)
         self.assertIn("Try again", app)
         self.assertNotIn("self.skipWaiting();\n});\n\nself.addEventListener(\"activate\"", sw)
@@ -138,6 +138,24 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("league-filter-name", app)
         self.assertIn(".league-filter-name", css)
         self.assertNotIn(".league-filter-code", css)
+
+    def test_league_table_has_movement_arrows_and_whatsapp_export(self):
+        app = (ROOT / "app.js").read_text()
+        css = (ROOT / "styles.css").read_text()
+        worker = (ROOT / "worker/src/worker.js").read_text()
+        logic = (ROOT / "worker/src/logic.js").read_text()
+        self.assertIn("function computeTableWithMovement", logic)
+        self.assertIn("computeTableWithMovement(memberList, completed, picks)", worker)
+        self.assertIn("function movementBadge", app)
+        self.assertIn("movement-up", app)
+        self.assertIn("movement-down", app)
+        self.assertIn("data-export-league-table", app)
+        self.assertIn("function leagueTableText", app)
+        self.assertIn("https://wa.me/?text=", app)
+        self.assertIn("Share table to WhatsApp", app)
+        self.assertIn(".movement-up", css)
+        self.assertIn(".movement-down", css)
+        self.assertIn(".whatsapp-share", css)
 
     def test_zero_cost_official_data_workflow(self):
         sync = (ROOT / "scripts/sync_official.py").read_text()
