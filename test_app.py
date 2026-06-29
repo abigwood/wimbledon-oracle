@@ -65,18 +65,29 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260629a", html)
-        self.assertIn("app.js?v=20260629a", html)
+        self.assertIn("styles.css?v=20260629b", html)
+        self.assertIn("app.js?v=20260629b", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v19-20260629", sw)
+        self.assertIn("wimbledon-oracle-v20-20260629", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("controllerchange", app)
         self.assertIn("registration.update()", app)
+
+    def test_schedule_day_and_match_position_survive_pick_save(self):
+        app = (ROOT / "app.js").read_text()
+        self.assertIn("let openScheduleDates = new Set()", app)
+        self.assertIn('data-day-card="${date}"', app)
+        self.assertIn('data-match-card="${match.id}"', app)
+        self.assertIn("function rememberMatchDay(matchId)", app)
+        self.assertIn("openScheduleDates.add(date)", app)
+        self.assertIn('render({ anchorMatchId: matchId })', app)
+        self.assertIn('render({ anchorMatchId: editingPick })', app)
+        self.assertIn('document.addEventListener("toggle"', app)
 
     def test_countdown_uses_london_calendar_day(self):
         app = (ROOT / "app.js").read_text()

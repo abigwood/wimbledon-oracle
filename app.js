@@ -40,6 +40,7 @@ let leagueState = null;
 let busyMatch = "";
 let editingPick = "";
 let flashMessage = "";
+let openScheduleDates = new Set();
 const inviteCode = new URLSearchParams(location.search).get("league")?.toUpperCase() || "";
 
 function readJSON(key, fallback) {
@@ -341,7 +342,7 @@ function matchCard(match) {
     const disabled = !open || busyMatch === match.id || (pick && !editing);
     return `<button class="score-button${selected ? " selected" : ""}" type="button" data-pick="${match.id}" data-p1="${p1}" data-p2="${p2}" ${disabled ? "disabled" : ""}>${busyMatch === match.id && selected ? "Saving…" : label}</button>`;
   }).join("");
-  return `<article class="match-card">
+  return `<article class="match-card" data-match-card="${match.id}">
     <div class="match-meta">
       <span class="tour-badge">${match.tour === "men" ? "Gentlemen's singles" : "Ladies' singles"}</span>
       <span>${matchTime(match)}${match.court ? ` · ${match.court}` : ""}</span>
@@ -367,8 +368,9 @@ function groupedDays(list) {
     const matches = list.filter((fixture) => fixture.date === date);
     const round = matches[0]?.round || "";
     const featured = matches[0]?.coverage === "featured";
-    const open = date === new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" }) || date === "2026-06-29";
-    return `<details class="day-card" ${open ? "open" : ""}>
+    const defaultOpen = date === new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" }) || date === "2026-06-29";
+    const open = openScheduleDates.has(date) || (!openScheduleDates.size && defaultOpen);
+    return `<details class="day-card" data-day-card="${date}" ${open ? "open" : ""}>
       <summary>
         <div><strong>${dateLabel(date, true)}</strong><span>${round}</span></div>
         <span>${matches.length} predictions${featured ? " · featured selection" : " · complete singles slate"}</span>
@@ -509,11 +511,29 @@ function escapeHTML(value) {
   return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
 }
 
-function render() {
+function restoreScroll(anchorMatchId, previousScrollY) {
+  if (anchorMatchId) {
+    const card = document.querySelector(`[data-match-card="${CSS.escape(anchorMatchId)}"]`);
+    if (card) {
+      card.scrollIntoView({ block: "center" });
+      return;
+    }
+  }
+  if (Number.isFinite(previousScrollY)) scrollTo({ top: previousScrollY });
+}
+
+function rememberMatchDay(matchId) {
+  const date = fixtures.find((fixture) => fixture.id === matchId)?.date;
+  if (date) openScheduleDates.add(date);
+}
+
+function render(options = {}) {
+  const previousScrollY = options.preserveScroll ? scrollY : null;
   const views = { today: todayView, schedule: scheduleView, picks: picksView, league: leagueView, rules: rulesView };
   document.getElementById("app").innerHTML = views[currentView]();
   document.getElementById("profileInitial").textContent = playerInitial();
   document.querySelectorAll(".bottom-nav button").forEach((button) => button.classList.toggle("active", button.dataset.view === currentView));
+  if (options.preserveScroll || options.anchorMatchId) restoreScroll(options.anchorMatchId, previousScrollY);
 }
 
 async function requireName() {
@@ -552,17 +572,19 @@ document.addEventListener("click", async (event) => {
   const updatePick = event.target.closest("[data-update-pick]");
   if (updatePick) {
     editingPick = updatePick.dataset.updatePick;
-    render();
+    rememberMatchDay(editingPick);
+    render({ anchorMatchId: editingPick });
     return;
   }
   const pickButton = event.target.closest("[data-pick]");
   if (pickButton) {
     if (!(await requireName())) return;
     const matchId = pickButton.dataset.pick;
+    rememberMatchDay(matchId);
     const previous = picks[matchId];
     picks[matchId] = { p1: Number(pickButton.dataset.p1), p2: Number(pickButton.dataset.p2), savedAt: Date.now() };
     busyMatch = matchId;
-    render();
+    render({ anchorMatchId: matchId });
     try {
       await api("/pick", { uid: uid(), nickname: playerName, matchId, p1: picks[matchId].p1, p2: picks[matchId].p2 });
       localStorage.setItem(STORAGE.picks, JSON.stringify(picks));
@@ -573,10 +595,17 @@ document.addEventListener("click", async (event) => {
       flashMessage = error.message;
     } finally {
       busyMatch = "";
-      render();
+      render({ anchorMatchId: matchId });
     }
   }
 });
+
+document.addEventListener("toggle", (event) => {
+  const card = event.target.closest?.("[data-day-card]");
+  if (!card) return;
+  if (card.open) openScheduleDates.add(card.dataset.dayCard);
+  else openScheduleDates.delete(card.dataset.dayCard);
+}, true);
 
 document.addEventListener("submit", async (event) => {
   if (event.target.id === "createLeagueForm") {
