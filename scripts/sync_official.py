@@ -243,14 +243,19 @@ def status_for(match):
 def result_for(match):
     if status_for(match) != "complete":
         return None
+    tour = TOUR_NAMES.get(match.get("eventName"))
+    winning_sets = 3 if tour == "men" else 2 if tour == "women" else None
     values = (match.get("score") or {}).get("setsWon") or []
     p1, p2 = values.count(1), values.count(2)
+    if winning_sets and max(p1, p2) > winning_sets:
+        p1 = min(p1, winning_sets)
+        p2 = min(p2, winning_sets)
     if p1 == p2 == 0:
         one, two = first_team(match.get("team1")), first_team(match.get("team2"))
         if one.get("won") is True:
-            return [3 if "Gentlemen" in match.get("eventName", "") else 2, 0]
+            return [winning_sets or 0, 0]
         if two.get("won") is True:
-            return [0, 3 if "Gentlemen" in match.get("eventName", "") else 2]
+            return [0, winning_sets or 0]
         return None
     return [p1, p2]
 

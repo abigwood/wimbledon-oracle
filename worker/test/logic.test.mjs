@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildReveals, computeTable, scorePick, validSetScore, windowState } from "../src/logic.js";
+import { buildReveals, computeTable, normaliseResult, scorePick, validSetScore, windowState } from "../src/logic.js";
 
 test("tennis set scores validate by tour", () => {
   assert.equal(validSetScore("men", 3, 2), true);
@@ -19,6 +19,13 @@ test("scoring is 5 exact, 2 correct winner, 0 wrong winner", () => {
   assert.deepEqual(scorePick({ p1: 3, p2: 1 }, { p1: 3, p2: 1 }).pts, 5);
   assert.deepEqual(scorePick({ p1: 3, p2: 0 }, { p1: 3, p2: 2 }).pts, 2);
   assert.deepEqual(scorePick({ p1: 3, p2: 2 }, { p1: 1, p2: 3 }).pts, 0);
+});
+
+test("official results are capped to the tour match format", () => {
+  assert.deepEqual(normaliseResult({ tour: "women", result: [3, 0] }), { p1: 2, p2: 0 });
+  assert.deepEqual(normaliseResult({ tour: "women", result: { p1: 0, p2: 3 } }), { p1: 0, p2: 2 });
+  assert.deepEqual(normaliseResult({ tour: "men", result: [4, 1] }), { p1: 3, p2: 1 });
+  assert.equal(normaliseResult({ tour: "women", result: [3, 3] }), null);
 });
 
 test("standings reject post-start picks and sort by points", () => {

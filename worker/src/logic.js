@@ -99,9 +99,17 @@ export function buildReveals(members, matches, picksByMatch, nowMs) {
 
 export function normaliseResult(match) {
   const value = match?.result;
-  if (Array.isArray(value) && value.length === 2) return { p1: Number(value[0]), p2: Number(value[1]) };
-  if (value && value.p1 != null && value.p2 != null) return { p1: Number(value.p1), p2: Number(value.p2) };
-  return null;
+  let result = null;
+  if (Array.isArray(value) && value.length === 2) result = { p1: Number(value[0]), p2: Number(value[1]) };
+  if (value && value.p1 != null && value.p2 != null) result = { p1: Number(value.p1), p2: Number(value.p2) };
+  if (!result) return null;
+  const winningSets = match?.tour === "men" ? 3 : match?.tour === "women" ? 2 : null;
+  if (winningSets && Math.max(result.p1, result.p2) > winningSets) {
+    result = { p1: Math.min(result.p1, winningSets), p2: Math.min(result.p2, winningSets) };
+  }
+  if (!Number.isInteger(result.p1) || !Number.isInteger(result.p2)) return null;
+  if (winningSets && !validSetScore(match.tour, result.p1, result.p2)) return null;
+  return result;
 }
 
 export const isVoided = (match) =>
