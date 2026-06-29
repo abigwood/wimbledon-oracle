@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260629k";
+const APP_BUILD = "20260629l";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
