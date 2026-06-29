@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260629i";
+const APP_BUILD = "20260629j";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -94,7 +94,11 @@ function makeSlot(date, round, tour, n, coverage) {
 async function loadFixtures() {
   const slots = makeSlots();
   try {
-    const response = await fetch(`data/fixtures.json?t=${Date.now()}`, { cache: "no-store" });
+    let response = null;
+    if (API) {
+      response = await fetch(`${API}/fixtures?t=${Date.now()}`, { cache: "no-store" }).catch(() => null);
+    }
+    if (!response?.ok) response = await fetch(`data/fixtures.json?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error();
     const live = await response.json();
     const byId = Object.fromEntries((live.fixtures || []).map((fixture) => [fixture.id, fixture]));

@@ -65,16 +65,16 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260629i", html)
-        self.assertIn("app.js?v=20260629i", html)
+        self.assertIn("styles.css?v=20260629j", html)
+        self.assertIn("app.js?v=20260629j", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v27-20260629", sw)
-        self.assertIn("styles.css?v=20260629i", sw)
-        self.assertIn("app.js?v=20260629i", sw)
+        self.assertIn("wimbledon-oracle-v28-20260629", sw)
+        self.assertIn("styles.css?v=20260629j", sw)
+        self.assertIn("app.js?v=20260629j", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("new Request(asset, { cache: \"reload\" })", sw)
@@ -85,7 +85,7 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("registration.update()", app)
         self.assertIn("updateViaCache: \"none\"", app)
         self.assertIn("pendingUpdateReload", app)
-        self.assertIn('const APP_BUILD = "20260629i"', app)
+        self.assertIn('const APP_BUILD = "20260629j"', app)
         self.assertIn("safeUpdateReload(true)", app)
         self.assertIn("Try again", app)
         self.assertNotIn("self.skipWaiting();\n});\n\nself.addEventListener(\"activate\"", sw)
@@ -127,6 +127,17 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("async function userPicks", worker)
         self.assertIn('if (path === "/picks") return getUserPicks(env, url);', worker)
         self.assertIn("picks: await userPicks(env, uid)", worker)
+
+    def test_live_fixture_loader_uses_worker_with_static_fallback(self):
+        app = (ROOT / "app.js").read_text()
+        worker = (ROOT / "worker/src/worker.js").read_text()
+        wrangler = (ROOT / "worker/wrangler.toml").read_text()
+        self.assertIn('fetch(`${API}/fixtures?t=${Date.now()}`', app)
+        self.assertIn('fetch(`data/fixtures.json?t=${Date.now()}`', app)
+        self.assertIn('if (path === "/fixtures") return getFixtures(env);', worker)
+        self.assertIn("async function refreshOfficialScores", worker)
+        self.assertIn("officialLiveScore", worker)
+        self.assertIn('crons = ["*/1 * * * *"]', wrangler)
 
     def test_league_switcher_uses_cached_names(self):
         app = (ROOT / "app.js").read_text()

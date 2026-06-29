@@ -15,6 +15,8 @@ import {
 let fixtureCache = null;
 let fixtureCacheAt = 0;
 const CACHE_MS = 60_000;
+const LIVE_REFRESH_MS = 45_000;
+const OFFICIAL_ENDPOINT = "https://www.wimbledon.com/graphql";
 
 const cors = (env) => ({
   "access-control-allow-origin": env.ALLOWED_ORIGIN || "*",
@@ -50,6 +52,143 @@ async function fixtures(env, fresh = false) {
   });
   fixtureCacheAt = now;
   return fixtureCache;
+}
+
+function officialStatus(match) {
+  const value = `${match?.status || ""} ${match?.comment || ""}`.toLowerCase();
+  const statusCode = String(match?.statusCode || "").toUpperCase();
+  if (value.includes("walkover")) return "walkover";
+  if (value.includes("retir")) return "retired";
+  if (value.includes("abandon")) return "abandoned";
+  if (value.includes("cancel")) return "cancelled";
+  if (value.includes("complete") || statusCode === "D") return "complete";
+  if (["L", "S"].includes(statusCode) || ["progress", "live", "suspend"].some((word) => value.includes(word))) return "live";
+  return "upcoming";
+}
+
+export function officialResult(match, tour) {
+  if (officialStatus(match) !== "complete") return null;
+  const values = match?.score?.setsWon || [];
+  const p1 = values.filter((value) => Number(value) === 1).length;
+  const p2 = values.filter((value) => Number(value) === 2).length;
+  const normalised = normaliseResult({ tour, result: [p1, p2] });
+  return normalised ? [normalised.p1, normalised.p2] : null;
+}
+
+export function officialLiveScore(match) {
+  if (officialStatus(match) !== "live") return null;
+  const sets = (match?.score?.tennisSets || [])
+    .map((set) => [set?.team1?.scoreDisplay, set?.team2?.scoreDisplay])
+    .filter(([p1, p2]) => p1 != null && p2 != null);
+  const game = match?.score?.gameScore || [];
+  return {
+    sets,
+    game: game.length === 2 ? [String(game[0]), String(game[1])] : [],
+  };
+}
+
+async function officialDayMatches(day) {
+  const query = `query Schedule($year: Int!, $day: Int!) {
+    schedule(year: $year, tournDay: $day) {
+      courts {
+        matches {
+          matchId status statusCode comment
+          score {
+            setsWon
+            gameScore
+            tennisSets {
+              set
+              team1 { scoreDisplay tiebreakDisplay }
+              team2 { scoreDisplay tiebreakDisplay }
+            }
+          }
+        }
+      }
+    }
+  }`;
+  const response = await fetch(OFFICIAL_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json", "user-agent": "WimbledonOracle/1.0" },
+    body: JSON.stringify({
+      operationName: "Schedule",
+      variables: { year: 2026, day: Number(day) },
+      query,
+    }),
+  });
+  if (!response.ok) throw new Error(`official schedule ${response.status}`);
+  const payload = await response.json();
+  if (payload?.errors?.length) throw new Error(payload.errors[0]?.message || "official schedule error");
+  return payload?.data?.schedule?.courts?.flatMap((court) => court.matches || []) || [];
+}
+
+async function refreshOfficialScores(env) {
+  const matchList = await fixtures(env, true);
+  const days = [...new Set(matchList
+    .filter((match) => match.officialDay && match.officialMatchId)
+    .filter((match) => !normaliseResult(match) && !isVoided(match))
+    .map((match) => Number(match.officialDay)))];
+  if (!days.length) {
+    await kvPut(env, "official:refresh", { updatedAt: Date.now(), matches: 0 });
+    return { ok: true, matches: 0 };
+  }
+  const officialById = new Map();
+  for (const day of days) {
+    for (const match of await officialDayMatches(day)) {
+      officialById.set(String(match.matchId), match);
+    }
+  }
+  const existing = (await kvGet(env, "results")) || {};
+  const next = { ...existing };
+  let changed = 0;
+  for (const match of matchList) {
+    const official = officialById.get(String(match.officialMatchId));
+    if (!official) continue;
+    let status = officialStatus(official);
+    let result = officialResult(official, match.tour);
+    const liveScore = officialLiveScore(official);
+    const old = existing[match.id] || {};
+    const oldDone = ["complete", "retired", "walkover", "abandoned", "cancelled"].includes(String(old.status || "").toLowerCase());
+    const newDone = ["complete", "retired", "walkover", "abandoned", "cancelled"].includes(status);
+    if (oldDone && !newDone) {
+      status = old.status;
+      result = old.result || result;
+    }
+    if (old.result && !result && oldDone) result = old.result;
+    const overlay = {
+      status,
+      result,
+      liveScore,
+      lockAt: old.lockAt || match.lockAt || (status !== "upcoming" ? new Date().toISOString() : null),
+    };
+    if (!overlay.result && !overlay.liveScore && status === "upcoming" && !overlay.lockAt) {
+      if (next[match.id]) {
+        delete next[match.id];
+        changed++;
+      }
+      continue;
+    }
+    if (JSON.stringify(next[match.id] || null) !== JSON.stringify(overlay)) changed++;
+    next[match.id] = overlay;
+  }
+  await kvPut(env, "results", next);
+  await kvPut(env, "official:refresh", { updatedAt: Date.now(), matches: Object.keys(next).length, changed });
+  fixtureCache = null;
+  return { ok: true, matches: Object.keys(next).length, changed };
+}
+
+async function maybeRefreshOfficialScores(env) {
+  const state = (await kvGet(env, "official:refresh")) || {};
+  if (Date.now() - Number(state.updatedAt || 0) < LIVE_REFRESH_MS) return state;
+  try {
+    return await refreshOfficialScores(env);
+  } catch (error) {
+    return { ...state, error: String(error?.message || error) };
+  }
+}
+
+async function getFixtures(env) {
+  await maybeRefreshOfficialScores(env);
+  return json({ ok: true, fixtures: await fixtures(env, true), refreshedAt: ((await kvGet(env, "official:refresh")) || {}).updatedAt || null }, 200, env);
 }
 
 async function uniqueRecovery(env) {
@@ -213,7 +352,7 @@ async function officialMatchStatus(match) {
       courts { matches { matchId status statusCode } }
     }
   }`;
-  const response = await fetch("https://www.wimbledon.com/graphql", {
+  const response = await fetch(OFFICIAL_ENDPOINT, {
     method: "POST",
     headers: { "content-type": "application/json", "user-agent": "WimbledonOracle/1.0" },
     body: JSON.stringify({
@@ -243,6 +382,9 @@ async function settle(env, body) {
 }
 
 export default {
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(refreshOfficialScores(env));
+  },
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { headers: cors(env) });
     const url = new URL(request.url);
@@ -251,6 +393,7 @@ export default {
       if (request.method === "GET") {
         if (path === "/" || path === "/health") return json({ ok: true, service: "wimbledon-oracle-window" }, 200, env);
         if (path === "/me") return getMe(env, url);
+        if (path === "/fixtures") return getFixtures(env);
         if (path === "/picks") return getUserPicks(env, url);
         if (path === "/state") return state(env, url);
       }
