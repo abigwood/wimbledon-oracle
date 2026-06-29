@@ -41,6 +41,8 @@ let busyMatch = "";
 let editingPick = "";
 let flashMessage = "";
 let openScheduleDates = new Set();
+let updateReloading = false;
+let pendingUpdateReload = false;
 const inviteCode = new URLSearchParams(location.search).get("league")?.toUpperCase() || "";
 
 function readJSON(key, fallback) {
@@ -536,6 +538,17 @@ function render(options = {}) {
   if (options.preserveScroll || options.anchorMatchId) restoreScroll(options.anchorMatchId, previousScrollY);
 }
 
+function updateInProgress() {
+  return Boolean(busyMatch);
+}
+
+function safeUpdateReload() {
+  if (updateReloading) return;
+  if (updateInProgress()) { pendingUpdateReload = true; return; }
+  updateReloading = true;
+  location.reload();
+}
+
 async function requireName() {
   if (playerName) return true;
   document.getElementById("playerName").value = "";
@@ -596,6 +609,7 @@ document.addEventListener("click", async (event) => {
     } finally {
       busyMatch = "";
       render({ anchorMatchId: matchId });
+      if (pendingUpdateReload && !updateInProgress()) safeUpdateReload();
     }
   }
 });
@@ -677,16 +691,58 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
 });
 
 if ("serviceWorker" in navigator) {
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (refreshing) return;
-    refreshing = true;
-    location.reload();
+  let updateRegistration = null;
+  let updateWorker = null;
+
+  function showUpdatePrompt(worker = null) {
+    if (worker) updateWorker = worker;
+    let prompt = document.getElementById("appUpdatePrompt");
+    if (!prompt) {
+      prompt = document.createElement("button");
+      prompt.id = "appUpdatePrompt";
+      prompt.className = "app-update-prompt";
+      prompt.type = "button";
+      prompt.setAttribute("aria-label", "Tap to update SW19 Oracle");
+      prompt.innerHTML = `<span aria-hidden="true">↻</span><strong>Tap to update</strong>`;
+      prompt.addEventListener("click", async () => {
+        prompt.classList.add("updating");
+        prompt.querySelector("strong").textContent = "Updating...";
+        try {
+          const registration = updateRegistration || await navigator.serviceWorker.getRegistration();
+          const workerToApply = updateWorker || registration?.waiting;
+          if (workerToApply) workerToApply.postMessage({ type: "SKIP_WAITING" });
+          else if (registration) await registration.update();
+        } catch {}
+      });
+      document.body.appendChild(prompt);
+    }
+    prompt.hidden = false;
+  }
+
+  document.addEventListener("click", () => {
+    if (pendingUpdateReload && !updateInProgress()) safeUpdateReload();
+  }, true);
+
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type === "SW_UPDATED") safeUpdateReload();
   });
-  navigator.serviceWorker.register("sw.js")
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => safeUpdateReload());
+
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
     .then((registration) => {
+      updateRegistration = registration;
       registration.update();
-      if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      if (registration.waiting && navigator.serviceWorker.controller) showUpdatePrompt(registration.waiting);
+      registration.addEventListener("updatefound", () => {
+        const worker = registration.installing;
+        worker?.addEventListener("statechange", () => {
+          if (worker.state === "installed" && navigator.serviceWorker.controller) showUpdatePrompt(worker);
+        });
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) registration.update().catch(() => {});
+      });
     })
     .catch(() => {});
 }

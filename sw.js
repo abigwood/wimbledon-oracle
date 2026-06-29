@@ -1,14 +1,20 @@
-const CACHE = "wimbledon-oracle-v20-20260629";
-const ASSETS = ["./", "index.html", "reset-cache.html", "styles.css?v=20260629b", "app.js?v=20260629b", "data/fixtures.json", "icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "manifest.webmanifest"];
+const CACHE = "wimbledon-oracle-v21-20260629";
+const ASSETS = ["./", "index.html", "reset-cache.html", "styles.css?v=20260629c", "app.js?v=20260629c", "data/fixtures.json", "icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "manifest.webmanifest"];
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
-  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE).then(cache => Promise.allSettled(ASSETS.map(asset => cache.add(new Request(asset, { cache: "reload" }))))));
 });
 
 self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))));
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    const stale = keys.filter(key => key !== CACHE);
+    await Promise.all(stale.map(key => caches.delete(key)));
+    await self.clients.claim();
+    if (!stale.length) return;
+    const clients = await self.clients.matchAll({ type: "window" });
+    clients.forEach(client => client.postMessage({ type: "SW_UPDATED", version: CACHE }));
+  })());
 });
 
 self.addEventListener("message", event => {
