@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260629h";
+const APP_BUILD = "20260629i";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -208,6 +208,7 @@ function dateLabel(value, long = false) {
 }
 
 function matchTime(match) {
+  if (String(match.status).toLowerCase() === "live") return "Live";
   if (match.startAt) {
     return new Intl.DateTimeFormat("en-GB", {
       hour: "2-digit", minute: "2-digit", timeZone: "Europe/London",
