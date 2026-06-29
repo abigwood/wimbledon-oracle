@@ -65,16 +65,16 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260629j", html)
-        self.assertIn("app.js?v=20260629j", html)
+        self.assertIn("styles.css?v=20260629k", html)
+        self.assertIn("app.js?v=20260629k", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v28-20260629", sw)
-        self.assertIn("styles.css?v=20260629j", sw)
-        self.assertIn("app.js?v=20260629j", sw)
+        self.assertIn("wimbledon-oracle-v29-20260629", sw)
+        self.assertIn("styles.css?v=20260629k", sw)
+        self.assertIn("app.js?v=20260629k", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("new Request(asset, { cache: \"reload\" })", sw)
@@ -85,7 +85,7 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("registration.update()", app)
         self.assertIn("updateViaCache: \"none\"", app)
         self.assertIn("pendingUpdateReload", app)
-        self.assertIn('const APP_BUILD = "20260629j"', app)
+        self.assertIn('const APP_BUILD = "20260629k"', app)
         self.assertIn("safeUpdateReload(true)", app)
         self.assertIn("Try again", app)
         self.assertNotIn("self.skipWaiting();\n});\n\nself.addEventListener(\"activate\"", sw)
