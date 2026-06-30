@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-30T14:46:54.878598Z",
+  "updatedAt": "2026-06-30T20:30:10.511722Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -334,8 +334,11 @@
       "court": "Court 12",
       "startAt": null,
       "lockAt": "2026-06-30T14:46:54.878598Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        2,
+        3
+      ],
       "id": "2026-06-30-men-2",
       "h2h": {
         "p1": 1,
@@ -360,11 +363,14 @@
       "nation2": "AUS",
       "flag1": "🇨🇿",
       "flag2": "🇦🇺",
-      "court": "Court 17",
+      "court": "Court 5",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
-      "result": null,
+      "lockAt": "2026-06-30T20:30:10.511722Z",
+      "status": "complete",
+      "result": [
+        3,
+        0
+      ],
       "id": "2026-06-30-men-3",
       "h2h": {
         "p1": 1,
@@ -391,8 +397,8 @@
       "flag2": "🇫🇷",
       "court": "Court 12",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-06-30T20:30:10.511722Z",
+      "status": "cancelled",
       "result": null,
       "id": "2026-06-30-men-4",
       "h2h": {
@@ -452,8 +458,8 @@
       "flag2": "🇦🇺",
       "court": "Centre Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-06-30T20:30:10.511722Z",
+      "status": "live",
       "result": null,
       "id": "2026-06-30-women-2",
       "h2h": {
@@ -479,11 +485,14 @@
       "nation2": "CZE",
       "flag1": "🇩🇪",
       "flag2": "🇨🇿",
-      "court": "Court 18",
+      "court": "Court 7",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
-      "result": null,
+      "lockAt": "2026-06-30T20:30:10.511722Z",
+      "status": "complete",
+      "result": [
+        0,
+        2
+      ],
       "id": "2026-06-30-women-3",
       "h2h": {
         "p1": 0,
