@@ -3,7 +3,7 @@ main = "src/worker.js"
 compatibility_date = "2026-06-25"
 
 [triggers]
-crons = ["*/1 * * * *"]
+crons = ["*/5 * * * *"]
 
 [vars]
 FIXTURES_URL = "https://abigwood.github.io/wimbledon-oracle/data/fixtures.json"

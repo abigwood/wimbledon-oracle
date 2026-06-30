@@ -155,7 +155,9 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn('if (path === "/fixtures") return getFixtures(env);', worker)
         self.assertIn("async function refreshOfficialScores", worker)
         self.assertIn("officialLiveScore", worker)
-        self.assertIn('crons = ["*/1 * * * *"]', wrangler)
+        self.assertIn("let liveResultOverlay = {}", worker)
+        self.assertIn("if (changed > 0) {", worker)
+        self.assertIn('crons = ["*/5 * * * *"]', wrangler)
 
     def test_league_switcher_uses_cached_names(self):
         app = (ROOT / "app.js").read_text()

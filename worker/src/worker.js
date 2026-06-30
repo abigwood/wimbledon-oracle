@@ -14,6 +14,9 @@ import {
 
 let fixtureCache = null;
 let fixtureCacheAt = 0;
+let liveResultOverlay = {};
+let officialCheckAt = 0;
+let officialCheckState = null;
 const CACHE_MS = 60_000;
 const LIVE_REFRESH_MS = 45_000;
 const OFFICIAL_ENDPOINT = "https://www.wimbledon.com/graphql";
@@ -47,7 +50,9 @@ async function fixtures(env, fresh = false) {
   const body = await response.json();
   const resultStore = (await kvGet(env, "results")) || {};
   fixtureCache = (body.fixtures || []).map((match) => {
-    const result = resultStore[match.id];
+    const persisted = resultStore[match.id];
+    const live = liveResultOverlay[match.id];
+    const result = persisted?.result || isVoided(persisted) ? persisted : (live || persisted);
     return mergeResultOverlay(match, result);
   });
   fixtureCacheAt = now;
@@ -128,7 +133,8 @@ async function refreshOfficialScores(env) {
     .filter((match) => !normaliseResult(match) && !isVoided(match))
     .map((match) => Number(match.officialDay)))];
   if (!days.length) {
-    await kvPut(env, "official:refresh", { updatedAt: Date.now(), matches: 0 });
+    officialCheckAt = Date.now();
+    officialCheckState = { updatedAt: officialCheckAt, matches: Object.keys((await kvGet(env, "results")) || {}).length, changed: 0, unchanged: true };
     return { ok: true, matches: 0 };
   }
   const officialById = new Map();
@@ -139,7 +145,8 @@ async function refreshOfficialScores(env) {
   }
   const existing = (await kvGet(env, "results")) || {};
   const next = { ...existing };
-  let changed = 0;
+  const liveNext = { ...liveResultOverlay };
+  let changed = 0, liveChanged = 0;
   for (const match of matchList) {
     const official = officialById.get(String(match.officialMatchId));
     if (!official) continue;
@@ -160,24 +167,48 @@ async function refreshOfficialScores(env) {
       liveScore,
       lockAt: old.lockAt || match.lockAt || (status !== "upcoming" ? new Date().toISOString() : null),
     };
-    if (!overlay.result && !overlay.liveScore && status === "upcoming" && !overlay.lockAt) {
-      if (next[match.id]) {
+    const persist = overlay.result || isVoided(overlay);
+    if (!persist && !overlay.liveScore && status === "upcoming" && !overlay.lockAt) {
+      if (liveNext[match.id]) {
+        delete liveNext[match.id];
+        liveChanged++;
+      }
+      if (next[match.id] && !oldDone) {
         delete next[match.id];
         changed++;
       }
       continue;
     }
-    if (JSON.stringify(next[match.id] || null) !== JSON.stringify(overlay)) changed++;
-    next[match.id] = overlay;
+    if (persist) {
+      if (JSON.stringify(next[match.id] || null) !== JSON.stringify(overlay)) changed++;
+      next[match.id] = overlay;
+      if (liveNext[match.id]) {
+        delete liveNext[match.id];
+        liveChanged++;
+      }
+    } else {
+      if (JSON.stringify(liveNext[match.id] || null) !== JSON.stringify(overlay)) liveChanged++;
+      liveNext[match.id] = overlay;
+      if (next[match.id] && !oldDone) {
+        delete next[match.id];
+        changed++;
+      }
+    }
   }
-  await kvPut(env, "results", next);
-  await kvPut(env, "official:refresh", { updatedAt: Date.now(), matches: Object.keys(next).length, changed });
-  fixtureCache = null;
-  return { ok: true, matches: Object.keys(next).length, changed };
+  liveResultOverlay = liveNext;
+  officialCheckAt = Date.now();
+  officialCheckState = { updatedAt: officialCheckAt, matches: Object.keys(next).length, changed, liveChanged };
+  if (changed > 0) {
+    await kvPut(env, "results", next);
+    await kvPut(env, "official:refresh", officialCheckState);
+  }
+  if (changed > 0 || liveChanged > 0) fixtureCache = null;
+  return { ok: true, ...officialCheckState };
 }
 
 async function maybeRefreshOfficialScores(env) {
   const state = (await kvGet(env, "official:refresh")) || {};
+  if (officialCheckState && Date.now() - officialCheckAt < LIVE_REFRESH_MS) return officialCheckState;
   if (Date.now() - Number(state.updatedAt || 0) < LIVE_REFRESH_MS) return state;
   try {
     return await refreshOfficialScores(env);
