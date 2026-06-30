@@ -2,7 +2,7 @@ name: Refresh official Wimbledon data
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -21,9 +21,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Pull official order of play and results
-        env:
-          WINDOW_API: https://wimbledon-oracle-window.abigwood.workers.dev
-          SETTLE_SECRET: ${{ secrets.SETTLE_SECRET }}
         run: python3 scripts/sync_official.py
       - name: Verify app and backend logic
         run: |

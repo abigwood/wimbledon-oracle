@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260630b";
+const APP_BUILD = "20260630c";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -94,12 +94,12 @@ function makeSlot(date, round, tour, n, coverage) {
   };
 }
 
-async function loadFixtures() {
+async function loadFixtures(refresh = false) {
   const slots = makeSlots();
   try {
     let response = null;
     if (API) {
-      response = await fetch(`${API}/fixtures?t=${Date.now()}`, { cache: "no-store" }).catch(() => null);
+      response = await fetch(`${API}/fixtures?${refresh ? "refresh=1&" : ""}t=${Date.now()}`, { cache: "no-store" }).catch(() => null);
     }
     if (!response?.ok) response = await fetch(`data/fixtures.json?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error();
@@ -820,7 +820,7 @@ document.addEventListener("click", async (event) => {
     liveRefreshMessage = "";
     render({ preserveScroll: true });
     try {
-      await loadFixtures();
+      await loadFixtures(true);
       await syncUserPicks().catch(() => {});
       if (activeLeague) await loadLeagueState();
       if (activeLeague) await loadKnownLeagueNames().catch(() => {});

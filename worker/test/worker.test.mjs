@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mergeResultOverlay, officialMatchOpen, officialResult } from "../src/worker.js";
+import { mergeResultOverlay, officialMatchOpen, officialResult, selectedSettlementCandidates } from "../src/worker.js";
 
 test("official Wimbledon booking status stays open before play starts", () => {
   assert.equal(officialMatchOpen({ status: null, statusCode: "B" }), true);
@@ -23,4 +23,15 @@ test("settlement overlay can still complete an unsettled fixture", () => {
 test("official completed set winners are capped to the match format", () => {
   const completed = { status: "Completed", statusCode: "D", score: { setsWon: [1, 1, 1, 1, 0, 0] } };
   assert.deepEqual(officialResult(completed, "men"), [3, 0]);
+});
+
+test("settlement refresh only targets today's started selected matches without final results", () => {
+  const now = Date.parse("2026-06-30T15:00:00+01:00");
+  const matches = [
+    { id: "today-live", date: "2026-06-30", officialDay: 9, officialMatchId: "1156", status: "live", startAt: "2026-06-30T13:00:00+01:00" },
+    { id: "today-future", date: "2026-06-30", officialDay: 9, officialMatchId: "1157", status: "upcoming", startAt: "2026-06-30T18:00:00+01:00" },
+    { id: "today-done", date: "2026-06-30", officialDay: 9, officialMatchId: "1158", status: "complete", result: [2, 0] },
+    { id: "tomorrow-live", date: "2026-07-01", officialDay: 10, officialMatchId: "1201", status: "live", startAt: "2026-07-01T13:00:00+01:00" },
+  ];
+  assert.deepEqual(selectedSettlementCandidates(matches, now).map((match) => match.id), ["today-live"]);
 });

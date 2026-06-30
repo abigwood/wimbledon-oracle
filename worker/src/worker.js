@@ -19,6 +19,7 @@ let officialCheckState = null;
 const CACHE_MS = 60_000;
 const RESULT_REFRESH_MS = 90_000;
 const OFFICIAL_ENDPOINT = "https://www.wimbledon.com/graphql";
+const DONE_STATUSES = ["complete", "retired", "walkover", "abandoned", "cancelled"];
 
 const cors = (env) => ({
   "access-control-allow-origin": env.ALLOWED_ORIGIN || "*",
@@ -68,6 +69,33 @@ function officialStatus(match) {
   return "upcoming";
 }
 
+function londonDateString(now = Date.now()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(now));
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function isDoneStatus(status) {
+  return DONE_STATUSES.includes(String(status || "").toLowerCase());
+}
+
+export function selectedSettlementCandidates(matchList, now = Date.now()) {
+  const today = londonDateString(now);
+  return matchList.filter((match) => {
+    if (match.date !== today) return false;
+    if (!match.officialDay || !match.officialMatchId) return false;
+    if (normaliseResult(match) || isVoided(match) || isDoneStatus(match.status)) return false;
+    const startMs = Date.parse(match.lockAt || match.startAt || "");
+    const status = String(match.status || "").toLowerCase();
+    return status === "live" || status === "in progress" || (Number.isFinite(startMs) && startMs <= now);
+  });
+}
+
 export function officialResult(match, tour) {
   if (officialStatus(match) !== "complete") return null;
   const values = match?.score?.setsWon || [];
@@ -107,13 +135,12 @@ async function officialDayMatches(day) {
 
 async function refreshOfficialScores(env) {
   const matchList = await fixtures(env, true);
-  const days = [...new Set(matchList
-    .filter((match) => match.officialDay && match.officialMatchId)
-    .filter((match) => !normaliseResult(match) && !isVoided(match))
-    .map((match) => Number(match.officialDay)))];
+  const candidates = selectedSettlementCandidates(matchList);
+  const candidateIds = new Set(candidates.map((match) => match.id));
+  const days = [...new Set(candidates.map((match) => Number(match.officialDay)))];
   if (!days.length) {
     officialCheckAt = Date.now();
-    officialCheckState = { updatedAt: officialCheckAt, changed: 0, unchanged: true };
+    officialCheckState = { updatedAt: officialCheckAt, changed: 0, skipped: "no-active-selected-matches" };
     return { ok: true, matches: 0 };
   }
   const officialById = new Map();
@@ -126,13 +153,14 @@ async function refreshOfficialScores(env) {
   const next = { ...existing };
   let changed = 0;
   for (const match of matchList) {
+    if (!candidateIds.has(match.id)) continue;
     const official = officialById.get(String(match.officialMatchId));
     if (!official) continue;
     let status = officialStatus(official);
     let result = officialResult(official, match.tour);
     const old = existing[match.id] || {};
-    const oldDone = ["complete", "retired", "walkover", "abandoned", "cancelled"].includes(String(old.status || "").toLowerCase());
-    const newDone = ["complete", "retired", "walkover", "abandoned", "cancelled"].includes(status);
+    const oldDone = isDoneStatus(old.status);
+    const newDone = isDoneStatus(status);
     if (oldDone && !newDone) {
       status = old.status;
       result = old.result || result;
@@ -173,9 +201,12 @@ async function maybeRefreshOfficialScores(env) {
   }
 }
 
-async function getFixtures(env) {
-  await maybeRefreshOfficialScores(env);
-  return json({ ok: true, fixtures: await fixtures(env, true), refreshedAt: officialCheckState?.updatedAt || null }, 200, env);
+async function getFixtures(env, request) {
+  const refresh = new URL(request.url).searchParams.get("refresh") === "1";
+  if (refresh) {
+    await maybeRefreshOfficialScores(env);
+  }
+  return json({ ok: true, fixtures: await fixtures(env, refresh), refreshedAt: officialCheckState?.updatedAt || null }, 200, env);
 }
 
 async function uniqueRecovery(env) {
@@ -370,7 +401,7 @@ async function settle(env, body) {
 
 export default {
   async scheduled(_event, env, ctx) {
-    ctx.waitUntil(refreshOfficialScores(env));
+    ctx.waitUntil(maybeRefreshOfficialScores(env));
   },
   async fetch(request, env) {
     if (request.method === "OPTIONS") return new Response(null, { headers: cors(env) });
@@ -380,7 +411,7 @@ export default {
       if (request.method === "GET") {
         if (path === "/" || path === "/health") return json({ ok: true, service: "wimbledon-oracle-window" }, 200, env);
         if (path === "/me") return getMe(env, url);
-        if (path === "/fixtures") return getFixtures(env);
+        if (path === "/fixtures") return getFixtures(env, request);
         if (path === "/picks") return getUserPicks(env, url);
         if (path === "/state") return state(env, url);
       }
