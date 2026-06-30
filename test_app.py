@@ -65,16 +65,16 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260630a", html)
-        self.assertIn("app.js?v=20260630a", html)
+        self.assertIn("styles.css?v=20260630b", html)
+        self.assertIn("app.js?v=20260630b", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v32-20260630", sw)
-        self.assertIn("styles.css?v=20260630a", sw)
-        self.assertIn("app.js?v=20260630a", sw)
+        self.assertIn("wimbledon-oracle-v33-20260630", sw)
+        self.assertIn("styles.css?v=20260630b", sw)
+        self.assertIn("app.js?v=20260630b", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("new Request(asset, { cache: \"reload\" })", sw)
@@ -85,7 +85,7 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("registration.update()", app)
         self.assertIn("updateViaCache: \"none\"", app)
         self.assertIn("pendingUpdateReload", app)
-        self.assertIn('const APP_BUILD = "20260630a"', app)
+        self.assertIn('const APP_BUILD = "20260630b"', app)
         self.assertIn("safeUpdateReload(true)", app)
         self.assertIn("Try again", app)
         self.assertNotIn("self.skipWaiting();\n});\n\nself.addEventListener(\"activate\"", sw)
@@ -101,6 +101,17 @@ class WimbledonOracleTests(unittest.TestCase):
         css = (ROOT / "styles.css").read_text()
         self.assertIn(".app-update-prompt", css)
         self.assertIn("Tap to update", (ROOT / "app.js").read_text())
+
+    def test_today_screen_has_manual_live_update_button(self):
+        app = (ROOT / "app.js").read_text()
+        css = (ROOT / "styles.css").read_text()
+        self.assertIn("function liveUpdateControl", app)
+        self.assertIn("data-refresh-live", app)
+        self.assertIn("await loadFixtures()", app)
+        self.assertIn("await syncUserPicks()", app)
+        self.assertIn("Live data updated", app)
+        self.assertIn(".live-update-button", css)
+        self.assertIn(".live-update-status", css)
 
     def test_bottom_nav_uses_shell_footer_not_fixed_overlay(self):
         css = (ROOT / "styles.css").read_text()

@@ -158,6 +158,46 @@ main {
 .section-head > div { min-width: 0; }
 .section-head h2 { margin: 3px 0 0; font-family: Georgia, serif; font-size: 1.35rem; }
 .section-head p { margin: 0; color: var(--muted); font-size: .78rem; }
+.section-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.live-update-status {
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.live-update-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 86px;
+  min-height: 34px;
+  padding: 8px 11px;
+  border: 1px solid #b9cda1;
+  border-radius: 999px;
+  color: var(--green);
+  background: #f1f7e8;
+  font-size: .72rem;
+  font-weight: 900;
+}
+.live-update-button span {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  color: var(--white);
+  background: var(--green);
+  font-size: .78rem;
+  line-height: 1;
+}
+.live-update-button:disabled { cursor: wait; opacity: .78; }
 .pill {
   flex: none;
   padding: 6px 10px;
@@ -507,6 +547,9 @@ dialog label { display: block; margin-bottom: 6px; color: var(--muted); font-siz
   .brand div span { font-size: .62rem; }
   .profile-button { width: 34px; height: 34px; }
   .section-head .pill { display: none; }
+  .section-head { align-items: flex-start; }
+  .section-actions { align-items: flex-end; flex-direction: column; gap: 5px; }
+  .live-update-status { max-width: 112px; overflow: hidden; text-overflow: ellipsis; }
   .score-button { flex: 1 0 58px; min-width: 0; }
   .league-actions { grid-template-columns: 1fr; }
   .restore-card { align-items: stretch; flex-direction: column; }

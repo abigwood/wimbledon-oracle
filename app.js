@@ -1,6 +1,6 @@
 const TOURNAMENT_START = new Date("2026-06-29T11:00:00+01:00");
 const TOURNAMENT_START_DATE = "2026-06-29";
-const APP_BUILD = "20260630a";
+const APP_BUILD = "20260630b";
 const API = window.WIM_API || null;
 const STORAGE = {
   uid: "wimbledon_oracle_uid",
@@ -44,6 +44,9 @@ let flashMessage = "";
 let openScheduleDates = new Set();
 let updateReloading = false;
 let pendingUpdateReload = false;
+let liveRefreshBusy = false;
+let liveRefreshMessage = "";
+let lastLiveRefreshAt = null;
 const inviteCode = new URLSearchParams(location.search).get("league")?.toUpperCase() || "";
 
 function readJSON(key, fallback) {
@@ -262,6 +265,20 @@ function hero() {
   </section>`;
 }
 
+function liveUpdateControl() {
+  const status = liveRefreshMessage
+    ? `<span class="live-update-status">${escapeHTML(liveRefreshMessage)}</span>`
+    : lastLiveRefreshAt
+      ? `<span class="live-update-status">Updated ${new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" }).format(lastLiveRefreshAt)}</span>`
+      : "";
+  return `<div class="section-actions">
+    ${status}
+    <button class="live-update-button" type="button" data-refresh-live ${liveRefreshBusy ? "disabled" : ""}>
+      <span aria-hidden="true">${liveRefreshBusy ? "..." : "↻"}</span>${liveRefreshBusy ? "Updating" : "Update"}
+    </button>
+  </div>`;
+}
+
 function drawNotice() {
   if (fixtures.some((fixture) => fixture.player1 && fixture.player2)) return "";
   return `<div class="notice">
@@ -401,7 +418,7 @@ function todayView() {
   return `${hero()}${installNotice()}${inviteCode && !leagueCodes.includes(inviteCode) ? `<div class="notice invite-notice"><span class="notice-icon">🏆</span><div><strong>League invitation: ${inviteCode}</strong><p>Open the League tab to join.</p></div></div>` : ""}${drawNotice()}
     <div class="section-head">
       <div><span class="eyebrow">Next up</span><h2>${title}</h2><p>${subtitle}</p></div>
-      <span class="pill">4 men · 4 women</span>
+      ${liveUpdateControl()}
     </div>
     ${dayMatches.map(matchCard).join("")}`;
 }
@@ -795,6 +812,26 @@ document.addEventListener("click", async (event) => {
     }
     render();
     scrollAppToTop({ behavior: "smooth" });
+    return;
+  }
+  const refreshLive = event.target.closest("[data-refresh-live]");
+  if (refreshLive) {
+    liveRefreshBusy = true;
+    liveRefreshMessage = "";
+    render({ preserveScroll: true });
+    try {
+      await loadFixtures();
+      await syncUserPicks().catch(() => {});
+      if (activeLeague) await loadLeagueState();
+      if (activeLeague) await loadKnownLeagueNames().catch(() => {});
+      lastLiveRefreshAt = new Date();
+      liveRefreshMessage = "Live data updated";
+    } catch {
+      liveRefreshMessage = "Update failed";
+    } finally {
+      liveRefreshBusy = false;
+      render({ preserveScroll: true });
+    }
     return;
   }
   const filter = event.target.closest("[data-filter]");
