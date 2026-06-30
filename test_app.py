@@ -65,16 +65,16 @@ class WimbledonOracleTests(unittest.TestCase):
 
     def test_html_asset_versions_match(self):
         html = (ROOT / "index.html").read_text()
-        self.assertIn("styles.css?v=20260629m", html)
-        self.assertIn("app.js?v=20260629m", html)
+        self.assertIn("styles.css?v=20260630a", html)
+        self.assertIn("app.js?v=20260630a", html)
         self.assertIn("wimbledon-oracle-window.abigwood.workers.dev", html)
 
     def test_service_worker_updates_app_shell_network_first(self):
         sw = (ROOT / "sw.js").read_text()
         app = (ROOT / "app.js").read_text()
-        self.assertIn("wimbledon-oracle-v31-20260629", sw)
-        self.assertIn("styles.css?v=20260629m", sw)
-        self.assertIn("app.js?v=20260629m", sw)
+        self.assertIn("wimbledon-oracle-v32-20260630", sw)
+        self.assertIn("styles.css?v=20260630a", sw)
+        self.assertIn("app.js?v=20260630a", sw)
         self.assertIn("networkFirst", sw)
         self.assertIn('event.data?.type === "SKIP_WAITING"', sw)
         self.assertIn("new Request(asset, { cache: \"reload\" })", sw)
@@ -85,14 +85,17 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn("registration.update()", app)
         self.assertIn("updateViaCache: \"none\"", app)
         self.assertIn("pendingUpdateReload", app)
-        self.assertIn('const APP_BUILD = "20260629m"', app)
+        self.assertIn('const APP_BUILD = "20260630a"', app)
         self.assertIn("safeUpdateReload(true)", app)
         self.assertIn("Try again", app)
         self.assertNotIn("self.skipWaiting();\n});\n\nself.addEventListener(\"activate\"", sw)
 
-    def test_live_matches_show_live_instead_of_time_tbc(self):
+    def test_live_matches_wait_for_final_result_without_live_score_ui(self):
         app = (ROOT / "app.js").read_text()
-        self.assertIn('if (String(match.status).toLowerCase() === "live") return "Live"', app)
+        css = (ROOT / "styles.css").read_text()
+        self.assertIn('if (match.status === "live") return "Result pending"', app)
+        self.assertNotIn("liveScoreBanner", app)
+        self.assertNotIn("live-score-banner", css)
 
     def test_tap_to_update_prompt_is_styled(self):
         css = (ROOT / "styles.css").read_text()
@@ -154,10 +157,11 @@ class WimbledonOracleTests(unittest.TestCase):
         self.assertIn('fetch(`data/fixtures.json?t=${Date.now()}`', app)
         self.assertIn('if (path === "/fixtures") return getFixtures(env);', worker)
         self.assertIn("async function refreshOfficialScores", worker)
-        self.assertIn("officialLiveScore", worker)
-        self.assertIn("let liveResultOverlay = {}", worker)
+        self.assertNotIn("officialLiveScore", worker)
+        self.assertNotIn("liveResultOverlay", worker)
+        self.assertNotIn("official:refresh", worker)
         self.assertIn("if (changed > 0) {", worker)
-        self.assertIn('crons = ["*/5 * * * *"]', wrangler)
+        self.assertIn('crons = ["*/2 * * * *"]', wrangler)
 
     def test_league_switcher_uses_cached_names(self):
         app = (ROOT / "app.js").read_text()

@@ -14,11 +14,10 @@ import {
 
 let fixtureCache = null;
 let fixtureCacheAt = 0;
-let liveResultOverlay = {};
 let officialCheckAt = 0;
 let officialCheckState = null;
 const CACHE_MS = 60_000;
-const LIVE_REFRESH_MS = 45_000;
+const RESULT_REFRESH_MS = 90_000;
 const OFFICIAL_ENDPOINT = "https://www.wimbledon.com/graphql";
 
 const cors = (env) => ({
@@ -51,9 +50,7 @@ async function fixtures(env, fresh = false) {
   const resultStore = (await kvGet(env, "results")) || {};
   fixtureCache = (body.fixtures || []).map((match) => {
     const persisted = resultStore[match.id];
-    const live = liveResultOverlay[match.id];
-    const result = persisted?.result || isVoided(persisted) ? persisted : (live || persisted);
-    return mergeResultOverlay(match, result);
+    return mergeResultOverlay(match, persisted);
   });
   fixtureCacheAt = now;
   return fixtureCache;
@@ -80,18 +77,6 @@ export function officialResult(match, tour) {
   return normalised ? [normalised.p1, normalised.p2] : null;
 }
 
-export function officialLiveScore(match) {
-  if (officialStatus(match) !== "live") return null;
-  const sets = (match?.score?.tennisSets || [])
-    .map((set) => [set?.team1?.scoreDisplay, set?.team2?.scoreDisplay])
-    .filter(([p1, p2]) => p1 != null && p2 != null);
-  const game = match?.score?.gameScore || [];
-  return {
-    sets,
-    game: game.length === 2 ? [String(game[0]), String(game[1])] : [],
-  };
-}
-
 async function officialDayMatches(day) {
   const query = `query Schedule($year: Int!, $day: Int!) {
     schedule(year: $year, tournDay: $day) {
@@ -100,12 +85,6 @@ async function officialDayMatches(day) {
           matchId status statusCode comment
           score {
             setsWon
-            gameScore
-            tennisSets {
-              set
-              team1 { scoreDisplay tiebreakDisplay }
-              team2 { scoreDisplay tiebreakDisplay }
-            }
           }
         }
       }
@@ -134,7 +113,7 @@ async function refreshOfficialScores(env) {
     .map((match) => Number(match.officialDay)))];
   if (!days.length) {
     officialCheckAt = Date.now();
-    officialCheckState = { updatedAt: officialCheckAt, matches: Object.keys((await kvGet(env, "results")) || {}).length, changed: 0, unchanged: true };
+    officialCheckState = { updatedAt: officialCheckAt, changed: 0, unchanged: true };
     return { ok: true, matches: 0 };
   }
   const officialById = new Map();
@@ -145,14 +124,12 @@ async function refreshOfficialScores(env) {
   }
   const existing = (await kvGet(env, "results")) || {};
   const next = { ...existing };
-  const liveNext = { ...liveResultOverlay };
-  let changed = 0, liveChanged = 0;
+  let changed = 0;
   for (const match of matchList) {
     const official = officialById.get(String(match.officialMatchId));
     if (!official) continue;
     let status = officialStatus(official);
     let result = officialResult(official, match.tour);
-    const liveScore = officialLiveScore(official);
     const old = existing[match.id] || {};
     const oldDone = ["complete", "retired", "walkover", "abandoned", "cancelled"].includes(String(old.status || "").toLowerCase());
     const newDone = ["complete", "retired", "walkover", "abandoned", "cancelled"].includes(status);
@@ -164,52 +141,31 @@ async function refreshOfficialScores(env) {
     const overlay = {
       status,
       result,
-      liveScore,
       lockAt: old.lockAt || match.lockAt || (status !== "upcoming" ? new Date().toISOString() : null),
     };
     const persist = overlay.result || isVoided(overlay);
-    if (!persist && !overlay.liveScore && status === "upcoming" && !overlay.lockAt) {
-      if (liveNext[match.id]) {
-        delete liveNext[match.id];
-        liveChanged++;
-      }
+    if (!persist) {
       if (next[match.id] && !oldDone) {
         delete next[match.id];
         changed++;
       }
       continue;
     }
-    if (persist) {
-      if (JSON.stringify(next[match.id] || null) !== JSON.stringify(overlay)) changed++;
-      next[match.id] = overlay;
-      if (liveNext[match.id]) {
-        delete liveNext[match.id];
-        liveChanged++;
-      }
-    } else {
-      if (JSON.stringify(liveNext[match.id] || null) !== JSON.stringify(overlay)) liveChanged++;
-      liveNext[match.id] = overlay;
-      if (next[match.id] && !oldDone) {
-        delete next[match.id];
-        changed++;
-      }
-    }
+    if (JSON.stringify(next[match.id] || null) !== JSON.stringify(overlay)) changed++;
+    next[match.id] = overlay;
   }
-  liveResultOverlay = liveNext;
   officialCheckAt = Date.now();
-  officialCheckState = { updatedAt: officialCheckAt, matches: Object.keys(next).length, changed, liveChanged };
+  officialCheckState = { updatedAt: officialCheckAt, matches: Object.keys(next).length, changed };
   if (changed > 0) {
     await kvPut(env, "results", next);
-    await kvPut(env, "official:refresh", officialCheckState);
   }
-  if (changed > 0 || liveChanged > 0) fixtureCache = null;
+  if (changed > 0) fixtureCache = null;
   return { ok: true, ...officialCheckState };
 }
 
 async function maybeRefreshOfficialScores(env) {
-  const state = (await kvGet(env, "official:refresh")) || {};
-  if (officialCheckState && Date.now() - officialCheckAt < LIVE_REFRESH_MS) return officialCheckState;
-  if (Date.now() - Number(state.updatedAt || 0) < LIVE_REFRESH_MS) return state;
+  const state = officialCheckState || {};
+  if (officialCheckState && Date.now() - officialCheckAt < RESULT_REFRESH_MS) return officialCheckState;
   try {
     return await refreshOfficialScores(env);
   } catch (error) {
@@ -219,7 +175,7 @@ async function maybeRefreshOfficialScores(env) {
 
 async function getFixtures(env) {
   await maybeRefreshOfficialScores(env);
-  return json({ ok: true, fixtures: await fixtures(env, true), refreshedAt: ((await kvGet(env, "official:refresh")) || {}).updatedAt || null }, 200, env);
+  return json({ ok: true, fixtures: await fixtures(env, true), refreshedAt: officialCheckState?.updatedAt || null }, 200, env);
 }
 
 async function uniqueRecovery(env) {
