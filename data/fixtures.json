@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-01T17:29:27.851999Z",
+  "updatedAt": "2026-07-01T19:21:36.273715Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -586,8 +586,8 @@
       "flag2": "🇷🇸",
       "court": "Centre Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-01T19:21:36.273715Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-01-men-2",
       "h2h": {
@@ -680,8 +680,11 @@
       "court": "Centre Court",
       "startAt": null,
       "lockAt": "2026-07-01T17:29:27.851999Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        2,
+        1
+      ],
       "id": "2026-07-01-women-1",
       "h2h": {
         "p1": 1,
@@ -741,8 +744,11 @@
       "court": "Court 18",
       "startAt": null,
       "lockAt": "2026-07-01T17:29:27.851999Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        2,
+        0
+      ],
       "id": "2026-07-01-women-3",
       "h2h": {
         "p1": 0,
