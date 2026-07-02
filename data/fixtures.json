@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-02T15:41:42.965108Z",
+  "updatedAt": "2026-07-02T17:52:47.612643Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -811,8 +811,11 @@
       "court": "Centre Court",
       "startAt": null,
       "lockAt": "2026-07-02T15:41:42.965108Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        3,
+        1
+      ],
       "id": "2026-07-02-men-1",
       "h2h": {
         "p1": 0,
@@ -837,10 +840,10 @@
       "nation2": "KAZ",
       "flag1": "🇫🇷",
       "flag2": "🇰🇿",
-      "court": "Court 12",
+      "court": "Court 14",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-02T17:52:47.612643Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-02-men-2",
       "h2h": {
@@ -868,8 +871,8 @@
       "flag2": "🇸🇰",
       "court": "Court 18",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-02T17:52:47.612643Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-02-men-3",
       "h2h": {
@@ -898,8 +901,11 @@
       "court": "Court 14",
       "startAt": null,
       "lockAt": "2026-07-02T15:41:42.965108Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        3,
+        0
+      ],
       "id": "2026-07-02-men-4",
       "h2h": {
         "p1": 1,
@@ -926,8 +932,8 @@
       "flag2": "🇰🇿",
       "court": "Centre Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-02T17:52:47.612643Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-02-women-1",
       "h2h": {
@@ -988,8 +994,11 @@
       "court": "Court 18",
       "startAt": null,
       "lockAt": "2026-07-02T13:18:30.803214Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        1,
+        2
+      ],
       "id": "2026-07-02-women-3",
       "h2h": {
         "p1": 0,
