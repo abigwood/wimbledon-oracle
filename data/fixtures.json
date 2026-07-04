@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-04T09:37:22.203256Z",
+  "updatedAt": "2026-07-04T11:35:51.672390Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -1496,8 +1496,8 @@
       "flag2": "🇨🇿",
       "court": "Court 12",
       "startAt": "2026-07-04T10:00:00Z",
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-04T11:35:51.672390Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-04-women-3",
       "h2h": {
