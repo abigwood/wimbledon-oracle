@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-05T16:35:00.270180Z",
+  "updatedAt": "2026-07-05T18:06:21.545190Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -1698,8 +1698,11 @@
       "court": "Centre Court",
       "startAt": null,
       "lockAt": "2026-07-05T16:35:00.270180Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        0,
+        2
+      ],
       "id": "2026-07-05-women-1",
       "h2h": {
         "p1": 3,
