@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-06T13:04:44.904920Z",
+  "updatedAt": "2026-07-06T16:38:28.567482Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -1863,8 +1863,8 @@
       "flag2": "🇬🇧",
       "court": "Centre Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-06T16:38:28.567482Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-06-men-2",
       "h2h": {
@@ -1893,8 +1893,11 @@
       "court": "No.1 Court",
       "startAt": "2026-07-06T12:00:00Z",
       "lockAt": "2026-07-06T13:04:44.904920Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        0,
+        3
+      ],
       "id": "2026-07-06-men-3",
       "h2h": {
         "p1": 2,
@@ -1951,8 +1954,11 @@
       "court": "Centre Court",
       "startAt": "2026-07-06T12:30:00Z",
       "lockAt": "2026-07-06T13:04:44.904920Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        2,
+        1
+      ],
       "id": "2026-07-06-women-1",
       "h2h": {
         "p1": 0,
@@ -1979,8 +1985,8 @@
       "flag2": "🇨🇿",
       "court": "No.1 Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-06T16:38:28.567482Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-06-women-2",
       "h2h": {
@@ -2041,8 +2047,11 @@
       "court": "No.2 Court",
       "startAt": null,
       "lockAt": "2026-07-06T13:04:44.904920Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        0,
+        2
+      ],
       "id": "2026-07-06-women-4",
       "h2h": {
         "p1": 1,
