@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-06T20:56:44.147803Z",
+  "updatedAt": "2026-07-06T22:20:05.773970Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -1835,7 +1835,7 @@
       "court": "Centre Court",
       "startAt": null,
       "lockAt": "2026-07-06T20:56:44.147803Z",
-      "status": "live",
+      "status": "cancelled",
       "result": null,
       "id": "2026-07-06-men-1",
       "h2h": {
@@ -2071,6 +2071,35 @@
       }
     },
     {
+      "officialMatchId": "1408",
+      "officialDay": 16,
+      "date": "2026-07-07",
+      "round": "Fourth Round",
+      "tour": "men",
+      "coverage": "all",
+      "player1": "J. Lehecka",
+      "player2": "A. Zverev",
+      "seed1": 13,
+      "seed2": 2,
+      "nation1": "CZE",
+      "nation2": "GER",
+      "flag1": "🇨🇿",
+      "flag2": "🇩🇪",
+      "court": "Centre Court",
+      "startAt": null,
+      "lockAt": "2026-07-06T20:56:44.147803Z",
+      "status": "upcoming",
+      "result": null,
+      "id": "2026-07-07-men-1",
+      "h2h": {
+        "p1": 1,
+        "p2": 1,
+        "player1": "Jiri Lehecka",
+        "player2": "Alexander Zverev",
+        "label": "H2H: Lehecka 1–1 Zverev"
+      }
+    },
+    {
       "officialMatchId": "1502",
       "officialDay": 16,
       "date": "2026-07-07",
@@ -2090,7 +2119,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-07-07-men-1",
+      "id": "2026-07-07-men-2",
       "h2h": {
         "p1": 1,
         "p2": 1,
@@ -2119,7 +2148,7 @@
       "lockAt": null,
       "status": "upcoming",
       "result": null,
-      "id": "2026-07-07-men-2",
+      "id": "2026-07-07-men-3",
       "h2h": {
         "p1": 3,
         "p2": 0,
