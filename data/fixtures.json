@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-07T16:34:04.631671Z",
+  "updatedAt": "2026-07-07T19:04:52.448780Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -1835,8 +1835,11 @@
       "court": "Centre Court",
       "startAt": null,
       "lockAt": "2026-07-06T20:56:44.147803Z",
-      "status": "cancelled",
-      "result": null,
+      "status": "complete",
+      "result": [
+        1,
+        3
+      ],
       "id": "2026-07-06-men-1",
       "h2h": {
         "p1": 1,
@@ -2119,8 +2122,8 @@
       "flag2": "🇷🇸",
       "court": "Centre Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-07T19:04:52.448780Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-07-men-2",
       "h2h": {
@@ -2213,8 +2216,11 @@
       "court": "No.1 Court",
       "startAt": null,
       "lockAt": "2026-07-07T16:34:04.631671Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        0,
+        2
+      ],
       "id": "2026-07-07-women-2",
       "h2h": {
         "p1": 3,
@@ -2261,13 +2267,13 @@
       "tour": "men",
       "coverage": "all",
       "player1": "T. Fritz",
-      "player2": "J. Lehecka",
+      "player2": "A. Zverev",
       "seed1": 6,
-      "seed2": null,
+      "seed2": 2,
       "nation1": "USA",
-      "nation2": "CZE",
+      "nation2": "GER",
       "flag1": "🇺🇸",
-      "flag2": "🇨🇿",
+      "flag2": "🇩🇪",
       "court": "No.1 Court",
       "startAt": null,
       "lockAt": null,
