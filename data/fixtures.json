@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-07T13:35:56.691358Z",
+  "updatedAt": "2026-07-07T16:34:04.631671Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -2088,8 +2088,11 @@
       "court": "Centre Court",
       "startAt": null,
       "lockAt": "2026-07-06T20:56:44.147803Z",
-      "status": "upcoming",
-      "result": null,
+      "status": "complete",
+      "result": [
+        1,
+        3
+      ],
       "id": "2026-07-07-men-1",
       "h2h": {
         "p1": 1,
@@ -2146,8 +2149,11 @@
       "court": "No.1 Court",
       "startAt": "2026-07-07T12:00:00Z",
       "lockAt": "2026-07-07T13:35:56.691358Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        3,
+        0
+      ],
       "id": "2026-07-07-men-3",
       "h2h": {
         "p1": 3,
@@ -2175,8 +2181,11 @@
       "court": "Centre Court",
       "startAt": "2026-07-07T12:30:00Z",
       "lockAt": "2026-07-07T13:35:56.691358Z",
-      "status": "live",
-      "result": null,
+      "status": "complete",
+      "result": [
+        1,
+        2
+      ],
       "id": "2026-07-07-women-1",
       "h2h": {
         "p1": 5,
@@ -2203,8 +2212,8 @@
       "flag2": "🇨🇿",
       "court": "No.1 Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-07T16:34:04.631671Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-07-women-2",
       "h2h": {
@@ -2266,11 +2275,11 @@
       "result": null,
       "id": "2026-07-08-men-2",
       "h2h": {
-        "p1": 0,
-        "p2": 0,
+        "p1": 13,
+        "p2": 5,
         "player1": "Taylor Fritz",
-        "player2": " ",
-        "label": "H2H: first meeting"
+        "player2": "Alexander Zverev",
+        "label": "H2H: Fritz 13–5 Zverev"
       }
     },
     {
