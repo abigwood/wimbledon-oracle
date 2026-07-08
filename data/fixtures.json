@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-08T09:27:41.958814Z",
+  "updatedAt": "2026-07-08T11:24:51.335627Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -2284,11 +2284,11 @@
       "result": null,
       "id": "2026-07-08-men-2",
       "h2h": {
-        "p1": 13,
+        "p1": 10,
         "p2": 5,
         "player1": "Taylor Fritz",
         "player2": "Alexander Zverev",
-        "label": "H2H: Fritz 13–5 Zverev"
+        "label": "H2H: Fritz 10–5 Zverev"
       }
     },
     {
