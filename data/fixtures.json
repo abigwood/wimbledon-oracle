@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-10T15:15:10.130524Z",
+  "updatedAt": "2026-07-10T17:19:39.633117Z",
   "source": "Official Wimbledon public scores and order-of-play service",
   "sourceUrls": [
     "https://www.wimbledon.com/en_GB/scores/schedule",
@@ -2442,8 +2442,8 @@
       "flag2": "🇷🇸",
       "court": "Centre Court",
       "startAt": null,
-      "lockAt": null,
-      "status": "upcoming",
+      "lockAt": "2026-07-10T17:19:39.633117Z",
+      "status": "live",
       "result": null,
       "id": "2026-07-10-men-1",
       "h2h": {
