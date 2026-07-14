@@ -4,56 +4,105 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#143D2B">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="SW19 Oracle">
-  <title>SW19 Oracle — 2026 Predictor</title>
-  <meta name="description" content="Predict the set scores at Wimbledon 2026: eight featured matches per day until the round of 16, then every singles match.">
-  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="robots" content="noindex,nofollow">
+  <title>SW19 Oracle - Closed</title>
+  <meta name="description" content="SW19 Oracle has now closed after Wimbledon 2026.">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="styles.css?v=20260630c">
+  <style>
+    :root {
+      color-scheme: light;
+      --green: #143d2b;
+      --lime: #d7ff5f;
+      --ink: #111713;
+      --muted: #5d6b62;
+      --line: #dfe7e1;
+      --paper: #f8faf7;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background:
+        linear-gradient(135deg, rgba(20, 61, 43, 0.08), rgba(215, 255, 95, 0.16)),
+        var(--paper);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      width: min(100%, 620px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      padding: clamp(28px, 7vw, 52px);
+      box-shadow: 0 18px 50px rgba(17, 23, 19, 0.10);
+    }
+
+    .mark {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green);
+      color: var(--lime);
+      font-weight: 800;
+      letter-spacing: 0;
+      margin-bottom: 26px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 8vw, 54px);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .status {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  </style>
 </head>
 <body>
-  <header class="app-header">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">SW</span>
-      <div>
-        <strong>SW19 Oracle</strong>
-        <span>2026 set-score predictor</span>
-      </div>
-    </div>
-    <button class="profile-button" id="profileButton" type="button" aria-label="Set player name">
-      <span id="profileInitial">A</span>
-    </button>
-  </header>
-
-  <main id="app" tabindex="-1"></main>
-
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <button class="active" type="button" data-view="today"><span>🎾</span>Today</button>
-    <button type="button" data-view="schedule"><span>🗓️</span>Schedule</button>
-    <button type="button" data-view="picks"><span>🔮</span>My Picks</button>
-    <button type="button" data-view="league"><span>🏆</span>League</button>
-    <button type="button" data-view="rules"><span>📋</span>Rules</button>
-  </nav>
-
-  <dialog id="profileDialog">
-    <form method="dialog" id="profileForm">
-      <div class="dialog-head">
-        <div>
-          <span class="eyebrow">Player profile</span>
-          <h2>What should we call you?</h2>
-        </div>
-        <button class="icon-button" value="cancel" aria-label="Close">×</button>
-      </div>
-      <label for="playerName">Display name</label>
-      <input id="playerName" maxlength="24" autocomplete="nickname" placeholder="Adam">
-      <button class="primary wide" value="save">Save name</button>
-    </form>
-  </dialog>
-
-  <script>window.WIM_API = "https://wimbledon-oracle-window.abigwood.workers.dev";</script>
-  <script src="app.js?v=20260630c" defer></script>
+  <main>
+    <div class="mark" aria-hidden="true">SW</div>
+    <h1>SW19 Oracle is closed.</h1>
+    <p>Thanks for playing through Wimbledon 2026. The live prediction game and league service have now been decommissioned while Prem Oracle moves forward.</p>
+    <div class="status">Tournament complete</div>
+  </main>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+        .catch(() => {});
+    }
+    if ("caches" in window) {
+      caches.keys()
+        .then((keys) => Promise.all(keys.filter((key) => key.startsWith("wimbledon-oracle")).map((key) => caches.delete(key))))
+        .catch(() => {});
+    }
+  </script>
 </body>
 </html>
